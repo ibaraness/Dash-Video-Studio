@@ -1,0 +1,23 @@
+.container {
+    display: flex;
+    flex-direction: column;
+    max-width: 1200px;
+    justify-content: center;
+    align-items: center;
+    margin-left: auto;
+    margin-right: auto;
+    height: 100vh;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+.xxl {
+    font-size: 14rem;
+    color: cadetblue;
+    margin: 0;
+}
+
+.subtitle {
+    font-size: 1rem;
+    text-transform: uppercase;
+    color: #515151;
+}
