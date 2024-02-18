@@ -7,6 +7,9 @@ import { VideoService } from "./video.service";
 import { VideoUploadService } from "./video-upload.service";
 import { BullModule } from "@nestjs/bull";
 import { VideoProcessor } from "./video.processor";
+import { VideoListener } from "./video.listener";
+import { LoggerModule } from "src/logger/logger.module";
+import { StorageModule } from "src/storage/storage.module";
 
 @Module({
     imports: [
@@ -15,8 +18,10 @@ import { VideoProcessor } from "./video.processor";
         BullModule.registerQueue({
             name: 'video',
         }),
+        LoggerModule,
+        StorageModule
     ],
     controllers: [VideoController],
-    providers: [VideoService, VideoUploadService, VideoProcessor]
+    providers: [VideoService, VideoUploadService, VideoProcessor, VideoListener]
 })
 export class VideoModule { }

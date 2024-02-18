@@ -11,34 +11,24 @@ import {
 import { Server } from "socket.io";
 
 @WebSocketGateway({ cors: true })
-export class ChatGateway
+export class TranscodeGateway
     implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
-    private readonly logger = new Logger(ChatGateway.name);
+    private readonly nestlogger = new Logger(TranscodeGateway.name);
 
     @WebSocketServer() io: Server;
 
     afterInit() {
-        this.logger.log("Initialized");
+        this.nestlogger.log("Initialized");
     }
 
     handleConnection(client: any, ...args: any[]) {
         const { sockets } = this.io.sockets;
 
-        this.logger.log(`Client id: ${client.id} connected`);
-        this.logger.debug(`Number of connected clients: ${sockets.size}`);
+        this.nestlogger.log(`Client id: ${client.id} connected`);
+        this.nestlogger.debug(`Number of connected clients: ${sockets.size}`);
     }
 
     handleDisconnect(client: any) {
-        this.logger.log(`Cliend id:${client.id} disconnected`);
-    }
-
-    @SubscribeMessage("ping")
-    handleMessage(client: any, data: any) {
-        this.logger.log(`Message received from client id: ${client.id}`);
-        this.logger.debug(`Payload: ${data}`);
-        return {
-            event: "pong",
-            data: "Wrong data that will make the test fail",
-        };
+        this.nestlogger.log(`Cliend id:${client.id} disconnected`);
     }
 }

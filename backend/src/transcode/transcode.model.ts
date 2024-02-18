@@ -1,3 +1,31 @@
+export interface PackageTranscodeJobData {
+    width: number;
+    height: number;
+    videoPath: string;
+    id: number;
+    uniqueFolderName: string;
+}
+
+export interface TranscodeDash extends PackageTranscodeJobData {}
+
+export interface TranscodeJobData {
+    videoSize: VideoSizes
+    videoId: number;
+    videoPath: string;
+}
+
+export interface TranscodeData extends TranscodeJobData {}
+
+export enum TranscodeEvents {
+    PackageTranscodeDone = 'video.packageTranscodeDone',
+    TranscodeDone = 'video.transcodeDone'
+}
+
+export enum TranscodeGateWayEvent {
+    PackageTranscode = 'packageTranscode',
+    VideoUpdated = 'videoUpdated'
+}
+
 export enum VideoSizes {
     V_144p = "144",
     V_240p = "240",
@@ -31,9 +59,10 @@ export enum TrascodeStatus {
     Done = "Done"
 }
 
-export interface TranscodeProgress {
+export interface TranscodeDashProgress {
     status: TrascodeStatus;
-    file: string;
     size: string;
     percentage: number;
+    fallbackFile: string;
+    mpdFilePath: string;
 }

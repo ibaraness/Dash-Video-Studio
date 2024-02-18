@@ -1,213 +1,190 @@
-import { Injectable } from "@nestjs/common";
-import * as ffprobeStatic from 'ffprobe-static';
-import ffmpegStatic from 'ffmpeg-static';
-import { promisify } from "util";
+import { existsSync, mkdirSync } from 'fs';
+import { Injectable, NotFoundException } from "@nestjs/common";
 import * as ffmpeg from 'fluent-ffmpeg';
-import * as fs from 'fs';
-import * as path from "path";
-import { Subject } from "rxjs";
-import { VideoSizes, AspectRatio, TranscodeProgress, videoBitrates, TrascodeStatus } from "./transcode.model";
+import { Subject } from 'rxjs';
+import { TranscodeDashProgress, TrascodeStatus } from './transcode.model';
+import { LoggerService } from 'src/logger/logger.service';
+const path = require('path');
 
-ffmpeg.setFfmpegPath(ffmpegStatic);
-ffmpeg.setFfprobePath(ffprobeStatic.path);
-
-export const ffprobeAsync = promisify<string, ffmpeg.FfprobeData>(ffmpeg.ffprobe);
-
-
+// TODO: check video frame rate, process with different bitrate on different frame rates
 
 @Injectable()
-export class TrancodeService {
+export class TranscodeService {
 
-    transcodeVideo(
-        videoPath: string,
-        videoSize: VideoSizes,
-        aspectRatio: AspectRatio = AspectRatio.AR_16_9,
-        baseFolderName = "transcode"): Subject<TranscodeProgress> {
+    constructor(private logger: LoggerService){}
 
-        // Check if file exist
-        if (!fs.existsSync(videoPath) || !fs.statSync(videoPath).isFile()) {
-            throw new Error("Video file does not exist!")
-        }
-        const filename = path.parse(videoPath).name
+    packageAndTranscode(videoPath: string, width: number, height: number) {
 
-        // Create a folder to transcoded videos
-        const basePath = path.join(path.dirname(videoPath), `/${filename}_${baseFolderName}/`);
-        if (!fs.existsSync(basePath)) {
-            fs.mkdirSync(basePath);
+        const localLogger = this.logger;
+
+        // Making sure we have an abslute path t source video
+        const inputPath = path.resolve(videoPath);
+
+        // Exit with exception if video does not exist 
+        if (!existsSync(inputPath)) {
+            throw new NotFoundException()
         }
 
-        const subject = new Subject<TranscodeProgress>();
+        // set resolution and bitrates stop points: [resolution, bitrate]
+        let resolutionsAndBitrates = [
+            [144, 250], 
+            [240, 350],
+            [480, 700],
+            [720, 2500],
+            [1080, 4500],
+            [1440, 8000],
+            [2160, 10000]
+        ];
 
-        // Get video frames count to calculate progress
-        // const frames = Number((await ffprobeAsync(videoPath)).streams[0].nb_frames || 0);
-        ffprobeAsync(videoPath).then(metadata => {
-            const frames = Number(metadata.streams[0].nb_frames || 0);
-            const percentageUnit = frames / 100;
+        // Checking if height is bigger or equal to width and set the sizes accordingly
+        const isLandscape = height < width; 
 
-            const videoFolder = path.join(basePath!, `${videoSize}p`);
-            if (!fs.existsSync(videoFolder)) {
-                fs.mkdirSync(videoFolder, { recursive: true });
-            }
+        // Set the unit we compare sizes to, in order to calculate resolution stop points (sizes)
+        const resolutionScalingFactor  = isLandscape ? height : width;
 
-            const outputPath = path.join(videoFolder!, path.basename(videoPath));
+        // Remove resolutions that are greater than the video's resolution
+        resolutionsAndBitrates = resolutionsAndBitrates.filter(size => size[0] < resolutionScalingFactor + 1)
 
-            console.log("outputPath", outputPath)
-            ffmpeg.setFfmpegPath(require('ffmpeg-static'));
-            ffmpeg()
-                // Input file
-                .input(videoPath)
+        // Set fallback video size, for traditional streaming for browsers which do not support dash
+        // [resolution, bitrate]
+        const fallback = [480, 400];
 
-                // Audio bit rate
-                .size(`"${videoSize}x?"`).aspect(aspectRatio)
-                .videoCodec("libx264")
+        // Video name (filename without extention and path)
+        let videoName = path.basename(videoPath, path.extname(videoPath));
 
-                .withVideoBitrate(videoBitrates[videoSize])
+        // The target dir where we will save the dash files
+        const targetdir = path.join(path.dirname(videoPath), "../", "dash");
 
-                // Output file
+        // The manifest filename path of the dash
+        const mpdFilePath = path.join(targetdir, `${videoName}.mpd`);
 
-                .saveToFile(outputPath)
-
-                // Log the percentage of work completed
-                .on('progress', (progress: any) => {
-
-                    // console.log("progress", progress)
-                    if (progress.frames) {
-                        console.log(Math.floor(progress.frames / percentageUnit));
-                        subject.next({
-                            status: TrascodeStatus.Processing,
-                            file: outputPath,
-                            size: videoSize,
-                            percentage: Math.floor(progress.frames / percentageUnit)
-                        });
-                    }
-                    else if (progress.percent) {
-                        console.log(`Processing: ${Math.floor(progress.percent)}% done`);
-                    } else {
-                        console.log("Processing...")
-                    }
-                })
-
-                // The callback that is run when FFmpeg is finished
-                .on('end', () => {
-                    console.log('FFmpeg has finished.');
-                    subject.next({
-                        status: TrascodeStatus.Done,
-                        file: outputPath,
-                        size: videoSize,
-                        percentage: 100
-                    });
-                })
-
-                // The callback that is run when FFmpeg encountered an error
-                .on('error', (error: any) => {
-                    console.error(error);
-                });
-        })
-
-
-        return subject;
-    }
-
-    async transcodeVideo2(
-        videoPath: string,
-        videoSize: VideoSizes,
-        aspectRatio: AspectRatio = AspectRatio.AR_16_9,
-        baseFolderName = "transcode"): Promise<Subject<TranscodeProgress>> {
-
-        // Check if video exist on path
-        if (!fs.existsSync(videoPath) || !fs.statSync(videoPath).isFile()) {
-            throw new Error("Video file does not exist!")
+        if (!existsSync(targetdir)) {
+            mkdirSync(targetdir);
         }
 
-        // ##### CONSTRUCTING OUTPUT FOLDER #####
+        // Dash output directoy and files
+        const subject = new Subject<TranscodeDashProgress>();
 
-        // Getting video filename from absolute path
-        const videoName = path.parse(videoPath).name
-        const folderName = `/${videoName}_${baseFolderName}/`
-        const sizeSpecificFolder = `${videoSize}p`;
-        const videoFileName = path.basename(videoPath);
+        // ##### FFMPEG SETTINGS #####
 
-        // Create a folder to transcoded videos
-        const videoFolder = path.join(path.dirname(videoPath), folderName, sizeSpecificFolder);
-        if (!fs.existsSync(videoFolder)) {
-            fs.mkdirSync(videoFolder, { recursive: true });
-        }
-
-        // Create output file with absolute path
-        const outputPath = path.join(videoFolder!, videoFileName);
-        console.log("outputPath", outputPath)
-
-        // Get video frames count to calculate progress
-        const totalFrames = Number((await ffprobeAsync(videoPath)).streams[0].nb_frames || 0);
-        console.log("totalFrames", totalFrames);
-
-        const subject = new Subject<TranscodeProgress>();
-        this.ffmpegProcess(videoPath, outputPath, totalFrames, videoSize, aspectRatio, subject);
-
-        return subject;
-    }
-
-    ffmpegProcess(
-        videoPath: string, 
-        outputPath: string, 
-        totalFrames: number, 
-        videoSize: VideoSizes, 
-        aspectRatio: AspectRatio, 
-        subject: Subject<TranscodeProgress>
-        ) {
-
-        const percentageUnit = totalFrames / 100;
-        
+        // Set ffmpeg path to fluent-ffmpeg
         ffmpeg.setFfmpegPath(require('ffmpeg-static'));
-        const proccess = ffmpeg()
-            // Input file
-            .input(videoPath)
+        ffmpeg.setFfprobePath(require('ffprobe-static').path);
 
-            // Audio bit rate
-            .size(`"?x${videoSize}"`).aspect(aspectRatio)
-            .videoCodec("libx264")
+        // Create FFMPEG process with source and target directory
+        const process = ffmpeg({
+            source: inputPath,
+            cwd: targetdir
+        });
 
-            .withVideoBitrate(videoBitrates[videoSize])
+        process.output(mpdFilePath)
+            // Setting the output format - 'dash'
+            .format("dash")
 
-            
+            // setting video codec - 'libx264'
+            .videoCodec('libx264')
 
-            // Log the percentage of work completed
-            .on('progress', (progress: any) => {
+            // setting audio codec - 'aac'
+            .audioCodec('aac')
 
-                // console.log("progress", progress)
-                if (progress.frames) {
-                    console.log(Math.floor(progress.frames / percentageUnit));
-                    subject.next({
-                        status: TrascodeStatus.Processing,
-                        file: outputPath,
-                        size: videoSize,
-                        percentage: Math.floor(progress.frames / percentageUnit)
-                    });
-                }
-                else if (progress.percent) {
-                    console.log(`Processing: ${Math.floor(progress.percent)}% done`);
-                } else {
-                    console.log("Processing...")
-                }
-            })
+            // setting audio channels (2 channels)
+            .audioChannels(2)
 
-            // The callback that is run when FFmpeg is finished
-            .on('end', () => {
-                console.log('FFmpeg has finished.');
+            // setting audio frequency (44100)
+            .audioFrequency(44100)
+
+            // Settings for x264 compression
+            .outputOptions([
+                '-preset veryfast', // Encoding preset
+                '-keyint_min 60', // specifies the minimum length of the GOP.
+                '-g 60', // maximum length of the GOP
+                '-sc_threshold 0', // equivalent to the no-scenecut option
+                '-profile:v main', // limits the output to a specific H.264 profile 
+                '-use_template 1', // Enable use of SegmentTemplate instead of SegmentList
+                '-use_timeline 1', // Enable use of SegmentTimeline within the SegmentTemplate
+
+                // Force fixed P/B pattern
+                // Disable B-frames adaptive algorithm and specify max consecutive B-frames number
+                '-b_strategy 0', // Disable B-frames adaptive algorithm
+                '-bf 1', // max consecutive B-frames number
+
+                '-map 0:a?', // Select all audio streams from first input
+                '-b:a 96k' // set audio streams to 96k
+            ]);
+
+        // Looping and setting sizes and bitrates
+        for (var resolutionAndBitRate of resolutionsAndBitrates) {
+            let index = resolutionsAndBitrates.indexOf(resolutionAndBitRate);
+            const resolution = resolutionAndBitRate[0];
+            const bitrate = resolutionAndBitRate[1];
+
+            // Set whether the width or height should be affected 
+            const scaleResolution = isLandscape ? `scale=-2:${resolution}` : `scale=${resolution}:-2`;
+
+            process
+                .outputOptions([
+                    // Creating a complex filter 
+                    `-filter_complex [0]format=pix_fmts=yuv420p[temp${index}];[temp${index}]${scaleResolution}[A${index}]`,
+                    `-map [A${index}]:v`,
+                    `-b:v:${index} ${bitrate}k`,
+                ]);
+        }
+
+        // setting for fallback version
+        // Fallback version
+        const fallbackFile = path.join(targetdir, `${videoName}.mp4`);
+        process
+            .output(fallbackFile) 
+            .format('mp4')
+            .videoCodec('libx264')
+            .videoBitrate(fallback[1])
+            .size(`?x${fallback[0]}`)
+            .audioCodec('aac')
+            .audioChannels(2)
+            .audioFrequency(44100)
+            .audioBitrate(128)
+            .outputOptions([
+                '-preset veryfast',
+                '-movflags +faststart',
+                '-keyint_min 60',
+                '-refs 5',
+                '-g 60',
+                '-pix_fmt yuv420p',
+                '-sc_threshold 0',
+                '-profile:v main',
+            ]);
+
+        process.on('start', function (commandLine) {
+            localLogger.debug('Spawned Ffmpeg with command: ' + commandLine, TranscodeService.name);
+        });
+
+        process.on('progress', function(progress) {
+            localLogger.debug(`Progres: ${Math.floor(progress.percent)}`, TranscodeService.name);
+            if (progress.percent) {
+                subject.next({
+                    status: TrascodeStatus.Processing,
+                    mpdFilePath,
+                    fallbackFile,
+                    size: "Unknown",
+                    percentage: Math.floor(progress.percent)
+                });
+            }
+        })
+            .on('end', function () {
+                localLogger.debug('complete', TranscodeService.name);
                 subject.next({
                     status: TrascodeStatus.Done,
-                    file: outputPath,
-                    size: videoSize,
+                    mpdFilePath,
+                    fallbackFile,
+                    size: "Unknown",
                     percentage: 100
                 });
-                // proccess.kill('SIGKILL')
+                subject.complete();
             })
-
-            // The callback that is run when FFmpeg encountered an error
-            .on('error', (error: any) => {
-                console.error(error);
-            })
-            // Output file
-            .saveToFile(outputPath);
+            .on('error', function (err) {
+                localLogger.error("Transcode error", err, TranscodeService.name);
+            });
+        process.run();
+        return subject;
     }
 }

@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
+import { HttpStatus, Inject, Injectable, NotFoundException } from "@nestjs/common";
 import * as ffprobeStatic from 'ffprobe-static';
 import ffmpegStatic from 'ffmpeg-static';
 import { promisify } from "util";
@@ -8,35 +8,30 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { Video } from "./video.entity";
 import fs = require("fs");
-const sharp = require("sharp");
+import { createReadStream } from "fs";
+import { Response } from 'express';
+import { VideoBasicInfo, VideoPublic } from "./video.model";
+import { CACHE_MANAGER } from "@nestjs/cache-manager";
+import { Cache } from "cache-manager";
+import * as sharp from "sharp";
+import { Config } from "src/config/app.config";
 
 ffmpeg.setFfmpegPath(ffmpegStatic);
 ffmpeg.setFfprobePath(ffprobeStatic.path);
 
 export const ffprobeAsync = promisify<string, ffmpeg.FfprobeData>(ffmpeg.ffprobe);
 
-export interface VideoBasicInfo {
-    filename: string;
-    duration: number;
-    bitRate: number;
-    size: number;
-    width: number;
-    height: number;
-    codecName: string;
-    codecType: string;
-    frames: number;
-}
-
 @Injectable()
 export class VideoService {
 
-    constructor(@InjectRepository(Video)
-    private readonly videoRepository: Repository<Video>) { }
+    constructor(
+        @InjectRepository(Video) private readonly videoRepository: Repository<Video>,
+        @Inject(CACHE_MANAGER) private cacheManager: Cache
+    ) { }
 
     async getVideoBasicInfo(videoPath: string): Promise<VideoBasicInfo> {
         const metadata = await ffprobeAsync(videoPath);
         const filename = path.parse(videoPath).name
-        // console.log(metadata)
         const duration = metadata.format.duration && metadata.format.duration;
         const bitRate = Number(metadata.streams[0].bit_rate || 0);
         const size = Number(metadata.format.size || 0);
@@ -44,83 +39,185 @@ export class VideoService {
         const height = metadata.streams[0].height;
         const codecName = metadata.streams[0].codec_name;
         const codecType = metadata.streams[0].codec_long_name;
-        // const filename = metadata.format.filename;
+        const frameRate = metadata.streams[0].r_frame_rate;
         const frames = Number(metadata.streams[0].nb_frames || 0);
-        const info = { filename, duration, bitRate, size, width, height, codecName, codecType, frames }
+        const info = { filename, duration, bitRate, size, width, height, codecName, codecType, frames, frameRate }
         return info
     }
 
-    async saveVideoScreenShot(videoPath: string): Promise<string> {
-        const ffmpegStatic = require('ffmpeg-static');
-        ffmpeg.setFfmpegPath(ffmpegStatic);
-        if (!fs.existsSync(videoPath)) {
-            console.log("video file not exist");
-            return;
-        }
+    async getVideoInfo(videoPath: string): Promise<ffmpeg.FfprobeData> {
+        const metadata = await ffprobeAsync(videoPath);
+        return metadata;
+    }
 
-        const dirname = path.basename(videoPath).replace(/\..*/, '_');
-        const imagePath = path.join(path.dirname(videoPath), dirname, "screenshots");
-        const filname = "thumb.jpg";
+    async streamVideo(res: Response, headers: { range: string }, videoId: number, resolution?: string): Promise<void> {
+        let { fallbackVideoPath: videoPath } = await this.loadvideo(videoId);
 
-        if (!fs.existsSync(imagePath)) {
-            fs.mkdirSync(imagePath, { recursive: true });
+        // Add check if exist
+        const { size } = fs.statSync(videoPath);
+
+        const videoRange = headers.range;
+        if (videoRange) {
+            const parts = videoRange.replace(/bytes=/, "").split("-");
+            const start = parseInt(parts[0], 10);
+            const end = parts[1] ? parseInt(parts[1], 10) : size - 1;
+            const chunksize = (end - start) + 1;
+            const readStreamfile = createReadStream(videoPath, { start, end, highWaterMark: 60 });
+            const head = {
+                'Content-Range': `bytes ${start}-${end}/${size}`,
+                'Content-Length': chunksize,
+            };
+            res.writeHead(HttpStatus.PARTIAL_CONTENT, head); //206
+            readStreamfile.pipe(res);
+        } else {
+            const head = {
+                'Content-Length': size,
+            };
+            res.writeHead(HttpStatus.OK, head);//200
+            createReadStream(videoPath).pipe(res);
         }
+    }
+
+    private async generateVideoScfreenshot(videoPath:string, imageFilename: string, imagePath: string):Promise<string> {
         return new Promise((resolve, reject) => {
             ffmpeg()
                 // Input file
                 .input(videoPath)
 
                 .screenshot({
-                    filename: filname,
+                    filename: imageFilename,
                     timemarks: ['0'],
                     folder: imagePath,
-                    size: "1280x720"
                 })
                 .on('end', () => {
-                    console.log("image was saved!", `${imagePath}/${filname}`)
-                    resolve(`${imagePath}/${filname}`)
+                    resolve(path.join(imagePath, imageFilename));
                 })
                 .on('error', (error) => {
-                    console.log(error);
                     reject(error);
                 })
+        });
+    }
 
-        })
+    async getVideoScreenShot(videoPath: string): Promise<string> {
+
+        ffmpeg.setFfmpegPath(require('ffmpeg-static'));
+        if (!fs.existsSync(videoPath)) {
+            throw new NotFoundException("Video not found on that path");
+        }
+
+        const imagePath = path.join(path.dirname(videoPath), "../", "screenshots");
+
+        const thumbWidth = Config.upload.screnshots.width;
+        const thumbHeight = Config.upload.screnshots.height;
+        
+        // Temporary image created by ffmpeg 
+        const ffmpegFilname = "temp_thumb.jpg";
+
+        // To be used by sharp to resize and crop the final thumb image
+        const finalFilePath = path.join(imagePath, "thumb.jpg");
+
+        if (!fs.existsSync(imagePath)) {
+            fs.mkdirSync(imagePath, { recursive: true });
+        }
+        
+        // Grab a screenshot from the video
+        const ffmpegScreeshotPath = await this.generateVideoScfreenshot(videoPath, ffmpegFilname, imagePath);
+
+        // Resize and crop the screenshot image to a unified size
+        const imageResizer = async (inputImagePath: string, fileOutputPath: string, width: number, height: number) => {
+            await sharp(inputImagePath)
+            .jpeg().resize(width, height)
+            .toFile(fileOutputPath);
+            return fileOutputPath;
+        }
+
+        // Set the size of the thumnails in app config
+        return imageResizer(ffmpegScreeshotPath, finalFilePath, thumbWidth, thumbHeight);
     }
 
     async saveVideo(videoPath: string, videoInfo: VideoBasicInfo, imagePath?: string) {
         const metadata = JSON.stringify(videoInfo);
         const filename = path.parse(videoPath).name
-        const video = this.videoRepository.create({ metadata, name: filename, path: videoPath, thumbnail: imagePath });
-        return await this.videoRepository.save(video);
+        const video = this.videoRepository.create({ metadata, name: filename, thumbnail: imagePath });
+        const saved = await this.videoRepository.save(video);
+        await this.cacheManager.del("allVideos");
+        await this.cacheManager.set(String(saved.id), JSON.stringify(saved));
+        return saved
     }
 
     async clear() {
         await this.videoRepository.clear();
+        await this.cacheManager.reset();
     }
 
-    async loadvideo(id: number) {
+    async loadvideo(id: number): Promise<Video> {
+        const cached: string = await this.cacheManager.get(String(id));
+        if (cached) {
+            return JSON.parse(cached);
+        }
         const video = await this.videoRepository.findOne({ where: { id } });
         if (!video) {
             throw new NotFoundException(`Video with ID ${id} not found`);
         }
+        await this.cacheManager.set(String(id), JSON.stringify(video));
         return video;
     }
 
+    async getById(id: number): Promise<VideoPublic> {
+        const cached: string = await this.cacheManager.get(`getById${id}`);
+        if (cached) {
+            return JSON.parse(cached);
+        }
+        const video = await this.videoRepository.findOne({ where: { id } });
+        if (!video) {
+            throw new NotFoundException(`Video with ID ${id} not found`);
+        }
+        const { dashFilePath, thumbnail, fallbackVideoPath, ...rest } = video;
+        const videoPublic = {
+            ...rest,
+            fallbackVideoPath: this.getPublicURL(fallbackVideoPath),
+            thumbnail: this.getPublicURL(thumbnail),
+            dash: this.getPublicURL(dashFilePath),
+            metadata: JSON.parse(rest.metadata)
+        }
+        await this.cacheManager.set(`getById${id}`, JSON.stringify(videoPublic));
+        return videoPublic;
+    }
+
     async getAll() {
-        const videos = await this.videoRepository.find();
+        const cachedResults: string = await this.cacheManager.get("allVideos");
+        if (cachedResults) {
+            return JSON.parse(cachedResults);
+        }
+
+        const videos = await this.videoRepository.find({
+            order: { "lastChangedDateTime": "DESC" }
+        });
         if (!videos || !videos.length) {
             throw new NotFoundException(`Videos not found!`);
         }
-        return videos.map(({ path, transcode, ...rest }) => {
-            const transcodeObject = JSON.parse(transcode) || {};
+
+        const allVideos = videos.map(({ dashFilePath, thumbnail, fallbackVideoPath, ...rest }) => {
             return {
                 ...rest,
-                thumbnail:`/video/image/${rest.id}`,
-                metadata: JSON.parse(rest.metadata),
-                transcodeSizes: Object.keys(transcodeObject)
+                fallbackVideoPath: this.getPublicURL(fallbackVideoPath),
+                thumbnail: this.getPublicURL(thumbnail),
+                dash: this.getPublicURL(dashFilePath),
+                metadata: JSON.parse(rest.metadata)
             }
         });
+
+        await this.cacheManager.set("allVideos", JSON.stringify(allVideos));
+
+        return allVideos;
+    }
+
+    getPublicURL(localPath?: string) {
+        if (!localPath) {
+            return localPath;
+        }
+        const localSegment = path.join(__dirname, '../../');
+        return localPath.replace(localSegment, '');
     }
 
     async updateTrascodeData(id: number, size: string, videoPath: string) {
@@ -128,8 +225,21 @@ export class VideoService {
         if (!video) {
             throw new NotFoundException(`Video with ID ${id} not found`);
         }
-        const transcodeData = JSON.parse(video.transcode) || {};
-        video.transcode = JSON.stringify({ ...transcodeData, [size]: videoPath });
-        return await this.videoRepository.save(video);
+
+        const saved = await this.videoRepository.save(video);
+        await this.cacheManager.set(String(id), JSON.stringify(saved));
+        return saved;
+    }
+
+    async updateDashData(id: number, dashFilePath: string, fallbackFile: string) {
+        const video = await this.videoRepository.findOne({ where: { id } });
+        if (!video) {
+            throw new NotFoundException(`Video with ID ${id} not found`);
+        }
+        video.dashFilePath = dashFilePath;
+        video.fallbackVideoPath = fallbackFile;
+        const saved = await this.videoRepository.save(video);
+        await this.cacheManager.set(String(id), JSON.stringify(saved));
+        return saved;
     }
 }

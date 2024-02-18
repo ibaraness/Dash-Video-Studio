@@ -1,26 +1,7 @@
 import { EntityState, createEntityAdapter, createSelector } from '@reduxjs/toolkit';
 import { apiSlice } from '../api/apiSlice';
 import { RootState } from '../../store/store';
-
-// export interface Post {
-//     id: number,
-//     userId: number;
-//     title: string;
-//     body: string;
-// }
-
-export interface VideoResponse {
-    id: number;
-    name: string;
-    thumbnail: string;
-    metadata: any;
-    transcodeSizes: string[]
-}
-
-export interface BatchTranscode {
-    videoId: number;
-    sizes: string[];
-}
+import { BatchTranscode, VideoResponse } from './videoListSlice.model';
 
 // Creating an entity adapter to normalize the user lists into
 // object based collection with the users IDs as keys
@@ -45,22 +26,25 @@ export const videosApiSlice = apiSlice.injectEndpoints({
             },
             providesTags: ['VideoList']
         }),
-        transcodePart: builder.mutation<undefined, TranscodePartParams>({
-            query: (params) => `/video/transcode/${params.videoId}/${params.size}`,
-            invalidatesTags: ['VideoList']
-        }),
-        batchTranscode:builder.mutation<undefined, BatchTranscode>({
-            query: (batchData) => ({
-                url: `/video/batch-transcode/${batchData.videoId}`,
-                method: 'POST',
-                body: {videoSizes: batchData.sizes}
-            }),
-        }),
+        // batchTranscode:builder.mutation<undefined, BatchTranscode>({
+        //     query: (batchData) => ({
+        //         url: `/video/batch-transcode/${batchData.videoId}`,
+        //         method: 'POST',
+        //         body: {videoSizes: batchData.sizes}
+        //     }),
+        // }),
+        // multiPartUploader:builder.mutation<undefined, BatchTranscode>({
+        //     query: (batchData) => ({
+        //         url: `/video`,
+        //         method: 'POST',
+        //         body: {videoSizes: batchData.sizes}
+        //     }),
+        // }),
     })
 });
 
 // Export the auto-generated hook for the `getUsers` query endpoint
-export const { useGetVideosQuery, useTranscodePartMutation, useBatchTranscodeMutation } = videosApiSlice;
+export const { useGetVideosQuery, useMultiPartUploaderMutation } = videosApiSlice;
 
 export const selectVideosResult = videosApiSlice.endpoints.getVideos.select(undefined);
 

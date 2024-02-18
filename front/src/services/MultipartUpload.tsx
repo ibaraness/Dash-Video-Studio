@@ -1,14 +1,6 @@
-export interface ProgressPayload {
-    percent: number;
-    chunkNumber: number;
-    totalChunks: number;
-}
-
-interface VideoStatusResponse {
-    status: string;
-    message: string;
-    id: number;
-}
+import { AppConfig } from "../app/config/config";
+import { v4 as uuidv4 } from 'uuid';
+import { ProgressPayload, VideoStatusResponse } from "./MultipartUpload.model";
 
 export const multipartUpload = (
     largeFile: File,
@@ -18,6 +10,14 @@ export const multipartUpload = (
     if (!largeFile) {
         throw new Error("Please select a file to upload.");
     }
+
+    const base = AppConfig.API.baseURL;
+    const uploadSlice = AppConfig.API.uploadKey;
+
+    const uploadURL = `${base}/${uploadSlice}`; 
+
+    // Set upload ID to keep upload stateless
+    const uploadId = uuidv4();
 
     let percent = 0;
     const chunkSize = 5 * (1024 ** 2); // 5MB (adjust based on your requirements)
@@ -33,11 +33,11 @@ export const multipartUpload = (
     let progress: VideoStatusResponse = {
         status: "idle",
         message: "pending start",
-        id:0
+        id: 0
     };
 
     const uploadNextChunk = async () => {
-        
+
 
         if (chunkNumber < totalChunks) {
             const chunk = largeFile.slice(start, end);
@@ -46,14 +46,15 @@ export const multipartUpload = (
             formData.append("chunkNumber", String(chunkNumber));
             formData.append("totalChunks", String(totalChunks));
             formData.append("originalname", largeFile.name);
+            formData.append("uploadId", uploadId);
 
             try {
-                const res = await fetch("http://localhost:3000/video", {
+                const res = await fetch(uploadURL, {
                     method: "POST",
                     body: formData,
                 });
                 progress = await res.json();
-                // console.log(progress);
+
                 percent = Number((chunkNumber + 1) * percentUnit);
                 chunkNumber++;
                 start = end;
@@ -70,7 +71,7 @@ export const multipartUpload = (
             if (onProgres) {
                 onProgres({ percent, chunkNumber, totalChunks });
             }
-            if(onSuccess){
+            if (onSuccess) {
                 onSuccess(progress!);
             }
         }

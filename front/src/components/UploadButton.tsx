@@ -3,8 +3,10 @@ import Button from '@mui/material/Button';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import { useAppDispatch, useAppSelector } from '../app/hooks';
 import { ProgressPayload, multipartUpload } from '../services/MultipartUpload';
-import { UploadedStatus, selectVideoInputValue, setPercent, setVideoInputValue, setVideoUploadStatus } from '../features/videoUpload/videoUploadSlice';
+import { selectVideoInputValue, setPercent, setVideoInputValue, setVideoUploadStatus } from '../features/videoUpload/videoUploadSlice';
 import { setVideoId } from '../features/video/videoSlice';
+import { UploadedStatus } from '../features/videoUpload/videoUploadSlice.model';
+import { useMultiPartUploaderMutation } from '../features/api/apiSlice';
 
 const VisuallyHiddenInput = styled('input')({
   clip: 'rect(0 0 0 0)',
@@ -28,6 +30,8 @@ const InputFileUpload = () => {
 
   const videoValue = useAppSelector(selectVideoInputValue);
   const dispatch = useAppDispatch();
+
+  // const [uploadFile, { isLoading, isError, error }] = useMultiPartUploaderMutation();
 
   const handleUpload = (event: EventTarget & HTMLInputElement) => {
     dispatch(setVideoInputValue(event.value));

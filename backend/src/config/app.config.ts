@@ -7,8 +7,12 @@ export const Config = {
             errorMessage: "Error saving chunk",
         },
         merged: {
-            directory: "merged_files",
+            directory: "original_file",
             successfullyMerged: "Chunks merged successfully"
+        },
+        screnshots: {
+            width: 1280,
+            height:720
         }
     }
 }

@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn } from 'typeorm';
 
 @Entity('videos')
 export class Video {
@@ -8,8 +8,14 @@ export class Video {
     @Column({ name: 'name', length: 70, nullable: false })
     name: string;
 
-    @Column({ name: 'path', nullable: false })
-    path: string;
+    @Column({ name: 'description', nullable: true })
+    description: string;
+
+    @Column({ name: 'dash_file_path', nullable: true })
+    dashFilePath: string;
+
+    @Column({ name: 'fallback_video_path', nullable: true })
+    fallbackVideoPath: string;
 
     @Column({ name: 'thumbnail', nullable: true })
     thumbnail: string;
@@ -17,6 +23,9 @@ export class Video {
     @Column({ name: 'metadata', nullable: false })
     metadata: string;
 
-    @Column({ name: 'transcode', nullable: true })
-    transcode: string;
+    @CreateDateColumn({ type: 'timestamptz', default: () => 'CURRENT_TIMESTAMP' })
+    createDateTime: Date;
+
+    @UpdateDateColumn({ type: 'timestamptz', default: () => 'CURRENT_TIMESTAMP' })
+    lastChangedDateTime: Date;
 }

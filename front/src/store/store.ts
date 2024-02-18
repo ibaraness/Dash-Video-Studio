@@ -1,14 +1,14 @@
 import { configureStore } from '@reduxjs/toolkit'
 import videoUploadSlice from '../features/videoUpload/videoUploadSlice'
 import videoSlice from '../features/video/videoSlice';
-import transcodeSlice from '../features/transcode/transcodeSlice';
 import { apiSlice } from '../features/api/apiSlice';
+import videoPlayerSlice from '../features/videoPlayer/videoPlayerSlice';
 
 export const store = configureStore({
     reducer: {
         videoUpload:videoUploadSlice,
         video: videoSlice,
-        transcode: transcodeSlice,
+        videoPlayer: videoPlayerSlice,
         [apiSlice.reducerPath]: apiSlice.reducer
     },
     middleware: getDefaultMiddleware =>

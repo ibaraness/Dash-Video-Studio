@@ -1,65 +1,66 @@
 import { Process, Processor } from '@nestjs/bull';
 import { Logger } from '@nestjs/common';
 import { Job } from 'bull';
-import { ChatGateway } from 'src/transcode/transcode.gateway';
-import { TrancodeService } from 'src/transcode/transcode.service';
 import { VideoService } from './video.service';
+import { from, switchMap, tap, map } from 'rxjs';
+import { UplodedVideoData } from './video.model';
+import { TranscodeApiService } from 'src/transcode/transcode-api.service';
+import { ChunkSavedStatus } from './video-upload.model';
+import { v4 as uuidv4 } from 'uuid';
+import { StorageService } from 'src/storage/storage.service';
+import { VideoBuckets } from "./../storage/storage.config";
+import * as path from 'path';
+import { LoggerService } from 'src/logger/logger.service';
 
 @Processor('video')
 export class VideoProcessor {
-    private readonly logger = new Logger(VideoProcessor.name);
 
     constructor(
         private videoService: VideoService,
-        private trancodeService: TrancodeService,
-        private chatGateway: ChatGateway
+        private transcodeApiService: TranscodeApiService,
+        private storageService: StorageService,
+        private logger: LoggerService
     ) { }
-    
-    @Process('transcode')
-    async handleVideoTranscode(job: Job) {
+
+    @Process('processUploadedVideo')
+    async processUploadedVideo(job: Job<UplodedVideoData>) {
+        const { videoPath } = job.data;
+
         try {
-            //Load the videoData
-            this.logger.debug("transcode2");
-            this.logger.debug(job.data);
-            const { videoId, videoSize } = job.data;
-            const { path: videoPath } = await this.videoService.loadvideo(Number(videoId));
-            this.logger.debug("path", videoPath);
-            const stream = await this.trancodeService.transcodeVideo2(videoPath, videoSize);
-            const subscriber = stream.subscribe(({ status, percentage, size, file }) => {
-                this.logger.debug(percentage);
-                this.chatGateway.io.emit('transcode', { status, percentage, size });
-                if (percentage === 100) {
-                    this.logger.debug("transcode size", size);
-                    this.logger.debug("transcode file", file);
-                    this.videoService.updateTrascodeData(videoId, size, file).then(data => {
-                        this.logger.debug("data", data);
-                    })
-                    subscriber.unsubscribe();
-                }
-            });
+            this.logger.debug("About to process video", VideoProcessor.name);
+            
+            // Generate storage UUID folder for video and files
+            const uniqueFolderName = uuidv4();
+
+            // Get video metadata
+            const metadata = await this.videoService.getVideoBasicInfo(videoPath);
+            this.logger.debug("About to metadata", VideoProcessor.name);
+
+            // Get a screenshot from the video
+            const screenshotPath = await this.videoService.getVideoScreenShot(videoPath);
+            this.logger.debug("About to saveVideoScreenShot", VideoProcessor.name);
+
+            // Save screenshot in storage
+            const imageFilename = path.basename(screenshotPath);
+            const { url } = await this.storageService.uploadFileWithFolder(
+                VideoBuckets.Dash,
+                uniqueFolderName,
+                imageFilename,
+                screenshotPath
+            );
+            this.logger.debug("About to uploadFile to storage", VideoProcessor.name);
+
+            // Save storage location on DB
+            const { id } = await this.videoService.saveVideo(videoPath, metadata, url)
+            this.logger.debug("About to saveVideo to database", VideoProcessor.name);
+            
+            // Send the video to transcoding process
+            const { width, height } = metadata;
+            this.transcodeApiService.triggerTranscodeDash({ width, height, id, videoPath, uniqueFolderName });
+            this.logger.debug("Video processing done!", VideoProcessor.name);
+
         } catch (e) {
-            console.log("something went wrong!");
-            console.log(e);
-        }
-
-
-    }
-
-    @Process('delay')
-    async transcode(job: Job<unknown>) {
-        let progress = 0;
-        console.log(`Processing job in process ${process.pid} with data: ${job.data}`);
-        for (let i = 0; i < 10; i++) {
-            await sleeper(1000);
-            progress += 1;
-            // this.logger.debug(progress);
-            await job.progress(progress);
+            this.logger.error("Processing video error", e, VideoProcessor.name)
         }
     }
-
-
-}
-
-async function sleeper(ms: number) {
-    return new Promise(resolve => setTimeout(() => resolve({}), ms));
 }
