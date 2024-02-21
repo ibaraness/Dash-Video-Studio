@@ -66,14 +66,14 @@ const MoviePlayerBar = ({ videoElement, src, player }: MoviePlayerBarProps) => {
     return (
         <Grid container alignContent={"center"} paddingLeft={1} paddingRight={1} justifyContent={"center"} height={"100%"}>
             <Grid display={"flex"} alignItems={"center"} flexDirection={"row"} item xs={8}>
-                <IconButton onClick={() => togglePlayVideo()} aria-label="play">
+                <IconButton sx={{display:{xs:"flex", sm:"flex"}}}  onClick={() => togglePlayVideo()} aria-label="play">
                     {!playing
                         ? <PlayArrowIcon sx={{ color: "white" }} />
                         : <PauseIcon sx={{ color: "white" }} />
                     }
 
                 </IconButton>
-                <IconButton onClick={() => toggleMute()} aria-label="volume">
+                <IconButton sx={{display:{xs:"none", sm:"flex"}}} onClick={() => toggleMute()} aria-label="volume">
                     {
                         mute
                             ? <VolumeOffIcon sx={{ color: "white" }} />
@@ -82,7 +82,7 @@ const MoviePlayerBar = ({ videoElement, src, player }: MoviePlayerBarProps) => {
 
                 </IconButton>{
                     !mute &&
-                    <Slider sx={{ marginLeft: 0, width: "100px", color: "white" }} aria-label="Volume" value={volume} onChange={handleVolumeChange} />
+                    <Slider sx={{display:{xs:"none", md:"block"}, marginLeft: 0, width: "100px", color: "white" }} aria-label="Volume" value={volume} onChange={handleVolumeChange} />
                 }
                 <VideoTimer video={videoElement} src={src}></VideoTimer>
             </Grid>

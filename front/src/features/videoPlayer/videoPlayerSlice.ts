@@ -7,6 +7,11 @@ export interface SelectedTrackInfo {
     title: string;
 }
 
+export interface EventState {
+    value: any;
+    id: number;
+}
+
 interface VideoPlayState {
     playing: boolean;
     loaded: boolean;
@@ -23,6 +28,8 @@ interface VideoPlayState {
     showQualityMenu: boolean;
     isBuffering: boolean;
     autoResolution: string;
+    initialized: boolean;
+    progressEvent: EventState;
 }
 
 const initialState: VideoPlayState = {
@@ -40,7 +47,9 @@ const initialState: VideoPlayState = {
     volume: 100,
     showQualityMenu: false,
     isBuffering: false,
-    autoResolution: ""
+    autoResolution: "",
+    initialized: false,
+    progressEvent: {id:0, value:0}
 }
 
 export const videoPlayerSlice = createSlice({
@@ -100,6 +109,15 @@ export const videoPlayerSlice = createSlice({
         setAutoResolution: (state, action: PayloadAction<string>) => {
             state.autoResolution = action.payload;
         },
+        setInitialized: (state, action: PayloadAction<boolean>) => {
+            state.initialized = action.payload;
+        },
+        setProgressEvent: (state, action: PayloadAction<any>) => {
+            state.progressEvent = {
+                value: action.payload, 
+                id: Math.random() * 123545678
+            }
+        },
     }
 });
 
@@ -118,6 +136,7 @@ export const selectSelectedTrack = (state: RootState) => state.videoPlayer.selec
 export const selectShowQualityMenu = (state: RootState) => state.videoPlayer.showQualityMenu;  
 export const selectIsBuffering = (state: RootState) => state.videoPlayer.isBuffering;  
 export const selectAutoResolution = (state: RootState) => state.videoPlayer.autoResolution;  
+export const selectInitialized = (state: RootState) => state.videoPlayer.initialized; 
 
 export const {
     setPlaying,
@@ -134,7 +153,9 @@ export const {
     setSelectedTrack,
     setShowQualityMenu,
     setIsBuffering,
-    setAutoResolution
+    setAutoResolution,
+    setInitialized,
+    setVideoDuration
 } = videoPlayerSlice.actions
 
 

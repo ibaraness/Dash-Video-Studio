@@ -17,6 +17,7 @@
     "@mui/material": "^5.15.6",
     "@reduxjs/toolkit": "^2.0.1",
     "dashjs": "^4.7.3",
+    "fbemitter": "^3.0.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-player": "^2.14.1",
@@ -27,6 +28,7 @@
     "vimond-replay": "^4.0.0"
   },
   "devDependencies": {
+    "@types/fbemitter": "^2.0.35",
     "@types/react": "^18.2.43",
     "@types/react-dom": "^18.2.17",
     "@typescript-eslint/eslint-plugin": "^6.14.0",

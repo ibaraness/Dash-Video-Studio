@@ -68,7 +68,16 @@ const VideoStudio = () => {
                 <Box sx={{ mb: 4 }}>
                     {/* Dash Player */}
                     <Paper>
-                        <Box sx={{ px: {lg:4, xs:0}, py: {lg:2, xs:0}, mb: 2 }}>
+                        <Box sx={{ 
+                            px: {lg:4, xs:0},
+                             py: {lg:2, xs:0}, 
+                             mb: 2,
+                             position: {xs:"fixed", md:"static"},
+                             top: 0,
+                             left:0,
+                             right:0,
+                             zIndex: {xs:"99999", md:"1"} 
+                             }}>
                             <DashPlayer></DashPlayer>
                         </Box>
                     </Paper>

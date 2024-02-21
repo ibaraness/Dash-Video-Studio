@@ -1,6 +1,10 @@
 import { Box, Typography } from "@mui/material";
 import { useState, useRef, useEffect } from "react";
-import { parseSecondsToTimeString } from "./utils/utils";
+import { parseSecondsToTimeString } from "./utils/general-utils";
+import eventEmitter from "./utils/eventEmitter";
+import { VideoEvent } from "./hooks/useVideoEventEmitter";
+import { useAppDispatch, useAppSelector } from "../../app/hooks";
+import { selectParsedTime, selectVideoDuration, setParsedTime, setVideoDuration } from "../../features/videoPlayer/videoPlayerSlice";
 
 export interface VideoTimerProps {
     video: HTMLVideoElement;
@@ -10,52 +14,33 @@ export interface VideoTimerProps {
 
 const VideoTimer = ({ video: videoElement, src }: VideoTimerProps) => {
 
-    const [parsedTime, setParsedTime] = useState<string>("00:00");
-    const [videoDuration, setVideoDuration] = useState<string>("00:00");
+    const parsedTime = useAppSelector(selectParsedTime);
 
-    const interval = useRef<any>(null);
-    const count = useRef<number>(0);
+    const videoDuration = useAppSelector(selectVideoDuration);
+
+    const dispatch = useAppDispatch();
 
     useEffect(() => {
         // Wait until video duration will be clear
         const totalDuration = videoElement.duration;
         if (!isNaN(totalDuration)) {
-            setVideoDuration(parseSecondsToTimeString(totalDuration));
+            dispatch(setVideoDuration(parseSecondsToTimeString(totalDuration)));
         }
-    })
+    });
 
-    useEffect(() => {
-        function playHandler() {
-            interval.current = setInterval(setTimer, 1000);
-            updateProgress();
+    useEffect(()=>{
+        function timeUpdate(){
+            dispatch(setParsedTime(parseSecondsToTimeString(videoElement.currentTime)));
         }
-
-        function pauseHandler() {
-            updateProgress();
-            if (interval.current) {
-                clearInterval(interval.current);
-            }
-        }
-
-        function updateProgress() {
-            setParsedTime(parseSecondsToTimeString(videoElement.currentTime));
-        }
-
-        function setTimer() {
-            count.current += 1;
-            setParsedTime(parseSecondsToTimeString(videoElement.currentTime));
-        }
-        videoElement.addEventListener("play", playHandler);
-        videoElement.addEventListener("pause", pauseHandler);
+        const listener = eventEmitter.addListener(VideoEvent.TimeUpdate, timeUpdate)
         return () => {
-            videoElement.removeEventListener("play", playHandler);
-            videoElement.removeEventListener("pause", pauseHandler);
+            listener.remove();
         }
-    }, [src, videoDuration])
+    },[src, videoDuration])
 
     return (
         <Box sx={{ px: 2 }}>
-            <Typography variant='h6' component={"span"} color={"white"}>
+            <Typography sx={{ typography: {sm:'h6', xs:'body1'}}} component={"span"} color={"white"}>
                 {parsedTime}
                 / {videoDuration}
             </Typography>

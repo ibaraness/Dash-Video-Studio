@@ -1,7 +1,7 @@
 import { useRef, useEffect } from "react";
 import shaka from 'shaka-player';
-
-export default function useShakaVideoPlayer(videoContainerRef: React.RefObject<HTMLDivElement>){
+//videoContainerRef: React.RefObject<HTMLDivElement>
+export default function useShakaVideoPlayer(uniquId: number){
     const isSupportedBrowser = useRef<boolean>(true);
 
     // Shaka player reference - to be used between renders
@@ -30,12 +30,12 @@ export default function useShakaVideoPlayer(videoContainerRef: React.RefObject<H
             isSupportedBrowser.current = false;
         }
 
-        // Append video element to div container
-        if (videoContainerRef.current && videoContainerRef.current.firstChild !== videoElement) {
-            videoContainerRef.current.appendChild(videoElement);
-        } 
+        // // Append video element to div container
+        // if (videoContainerRef.current && videoContainerRef.current.firstChild !== videoElement) {
+        //     videoContainerRef.current.appendChild(videoElement);
+        // } 
 
-    }, [videoContainerRef]);
+    }, [uniquId]);
 
     return {
         player: shakaPlayerRef.current,

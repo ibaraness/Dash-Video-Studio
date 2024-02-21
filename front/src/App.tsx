@@ -9,7 +9,7 @@ function App() {
   return (
     <React.Fragment>
       <CssBaseline />
-      <AppBar position="fixed">
+      <AppBar position="fixed" sx={{display:{xs:"none", md:"block"}}}>
         <Toolbar>
           <IconButton
             size="large"
@@ -26,7 +26,14 @@ function App() {
           <Button color="inherit">Login</Button>
         </Toolbar>
       </AppBar>
-      <Container maxWidth="lg" sx={{ backgroundColor: blue[50], minHeight: "100vh", py: 4, mt:7 }}>
+      <Container maxWidth="lg" sx={{
+        px:{xs:0, md:2}, 
+        backgroundColor: blue[50], 
+        minHeight: "100vh", 
+        py: {md:4}, 
+        pt:{xs:"calc(100vw * (9/16))"}, 
+        mt:{xs:0, md:7} 
+        }}>
         <VideoStudio></VideoStudio>
       </Container>
     </React.Fragment>

@@ -1,8 +1,10 @@
-import { LinearProgress, Slider } from "@mui/material";
-import { useState, useRef, useEffect } from "react";
+import { Box, LinearProgress, Slider } from "@mui/material";
+import { useState, useRef, useEffect, useMemo } from "react";
 import shaka from "shaka-player";
 import { selectBuffer, selectPlaying, selectProgressValue, setBuffer, setPlaying, setProgressValue } from "../../features/videoPlayer/videoPlayerSlice";
 import { useAppDispatch, useAppSelector } from "../../app/hooks";
+import eventEmitter from "./utils/eventEmitter";
+import { VideoEvent } from "./hooks/useVideoEventEmitter";
 
 export interface MovieProgressbarProps {
     player: shaka.Player;
@@ -13,30 +15,19 @@ const MovieProgressbar = ({ player, videoElement, src }: MovieProgressbarProps) 
 
     const progressValue = useAppSelector(selectProgressValue);
 
+    const clickableTrack = useRef<HTMLDivElement>(null);
+
+    const [viewPortWidth, setViewPortWidth] = useState(window.innerWidth);
+
     const buffer = useAppSelector(selectBuffer);
     const playing = useAppSelector(selectPlaying);
     const dispatch = useAppDispatch();
 
-    const interval = useRef<any>(null)
-
     const duration = useRef<number>(0);
 
     useEffect(() => {
-        function playHandler() {
-            interval.current = setInterval(setTimer, 1000);
-            updateProgress();
-            // dispatch(setPlaying(true));
-        }
 
-        function pauseHandler() {
-            updateProgress();
-            if (interval.current) {
-                clearInterval(interval.current);
-            }
-            // dispatch(setPlaying(false));
-        }
-
-        function progressHandler() {
+        function updateBufferHandler() {
             try {
                 const bufferRange = player.getBufferedInfo().total[0];
                 const percentSlice = 100 / duration.current;
@@ -46,47 +37,25 @@ const MovieProgressbar = ({ player, videoElement, src }: MovieProgressbarProps) 
             }
         }
 
-        function updateProgress() {
+        function updateTimeProgress() {
             const percentSlice = 100 / duration.current;
             const percentOfTime = Math.round(videoElement.currentTime * percentSlice);
             dispatch(setProgressValue(percentOfTime));
         }
 
-        function videoEnd() {
-            pauseHandler();
-            // dispatch(setPlaying(false));
+        // Get the video element from the player
+        const totalDuration = videoElement.duration;
+        if (!isNaN(totalDuration)) {
+            duration.current = totalDuration
         }
 
-        function setTimer() {
-            updateProgress();
-        }
-        try {
-            // Get the video element from the player
-            const totalDuration = videoElement.duration;
-            if (!isNaN(totalDuration)) {
-                duration.current = totalDuration
-            }
-
-            if (playing) {
-                if (progressValue === 100) {
-                    dispatch(setProgressValue(0));
-                }
-                playHandler();
-            } else {
-                pauseHandler();
-            }
-            videoElement.addEventListener("progress", progressHandler);
-            videoElement.addEventListener("ended", videoEnd);
-
-        } catch (e) {
-            console.error('Video element:', e);
-        }
+        const timeListener = eventEmitter.addListener(VideoEvent.TimeUpdate, updateTimeProgress);
+        const bufferListener = eventEmitter.addListener(VideoEvent.Progress, updateBufferHandler);
         return () => {
-            pauseHandler();
-            videoElement.removeEventListener("progress", progressHandler);
-            videoElement.removeEventListener("ended", videoEnd);
+            timeListener.remove();
+            bufferListener.remove();
         }
-    }, [playing])
+    }, [src, playing])
 
     const setPosition = (value: number) => {
         dispatch(setProgressValue(value));
@@ -95,49 +64,85 @@ const MovieProgressbar = ({ player, videoElement, src }: MovieProgressbarProps) 
         videoElement.currentTime = position;
     }
 
+    const getClickableTrackRect = () => {
+        return clickableTrack.current && clickableTrack.current.getClientRects()[0]
+    }
+
+    // Caching 'getClientRects' DOM method
+    const getClickableTrackRectCache = useMemo(
+        () => getClickableTrackRect(),
+        [clickableTrack.current, viewPortWidth]
+    );
+
+    useEffect(() => {
+        function resizeHandler() {
+            setViewPortWidth(window.innerWidth);
+        }
+        window.addEventListener("resize", resizeHandler);
+        return () => {
+            window.removeEventListener("resize", resizeHandler);
+        }
+    }, [src])
+
+    const handleTrackClick = (event: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+        const parentRect = getClickableTrackRectCache;
+        if (parentRect) {
+            const left = parentRect.left;
+            const width = parentRect.width;
+            const position = event.clientX - left;
+            const percent = position * (100/width);
+            setPosition(percent);
+        }
+    }
+
     return (
-        // <LinearProgress variant="buffer" value={progressValue} valueBuffer={buffer} />
-        <div style={{position:"relative", height:"50px", padding:"20px"}}>
-            <div style={{
-                height:"4px",
-                backgroundColor:"turquoise",
-                width: buffer + "%",
-                position:"relative",
-                top:"17px"
-            }}></div>
-            <Slider
-                aria-label="time-indicator"
-                size="small"
-                value={progressValue}
-                min={0}
-                step={1}
-                max={100}
-                  onChange={(_, value) => setPosition(value as number)}
-                sx={{
-                    // position:"absolute",
-                    color: true ? '#fff' : 'rgba(0,0,0,0.87)',
-                    height: 4,
-                    '& .MuiSlider-thumb': {
-                        width: 8,
-                        height: 8,
-                        transition: '0.3s cubic-bezier(.47,1.64,.41,.8)',
-                        '&:hover, &.Mui-focusVisible': {
-                            boxShadow: `0px 0px 0px 8px ${true
-                                    ? 'rgb(255 255 255 / 16%)'
-                                    : 'rgb(0 0 0 / 16%)'
-                                }`,
-                        },
-                        '&.Mui-active': {
-                            width: 20,
-                            height: 20,
-                        },
-                    },
-                    '& .MuiSlider-rail': {
-                        opacity: 0.28,
-                    },
-                }}
-            />
-        </div>
+        <Box sx={{ height: "4px", padding: { xs: "0px 20px", sm: "10px 20px", md: "20px" } }}>
+            <Box style={{ position: "relative", height: "4px" }}>
+                {/* Buffer line */}
+                <Box style={{
+                    height: "4px",
+                    backgroundColor: "rgba(255,255,255,.8)",
+                    width: buffer + "%",
+                    position: "absolute",
+                    top: "0",
+                    left: "0",
+                }}></Box>
+                {/* Track line */}
+                <Box
+                    style={{
+                        height: "4px",
+                        backgroundColor: "rgba(255,255,255,.3)",
+                        width: "100%",
+                        position: "absolute",
+                        top: "0",
+                        left: "0",
+                    }}></Box>
+                {/* Time progress line */}
+                <Box style={{
+                    height: "4px",
+                    backgroundColor: "#0774e8",
+                    width: progressValue + "%",
+                    position: "absolute",
+                    top: "0px",
+                    left: "0",
+                }}></Box>
+
+                <Box
+                    onClick={handleTrackClick}
+                    component={"div"}
+                    ref={clickableTrack}
+                    sx={{
+                        height: "12px",
+                        backgroundColor: "rgba(255,0,0,0)",
+                        width: "100%",
+                        cursor:"pointer",
+                        position: "absolute",
+                        top: "-4px",
+                        left: "0",
+                    }}></Box>
+            </Box>
+        </Box>
+
 
     )
 }
