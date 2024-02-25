@@ -3,7 +3,7 @@ import { useRef } from "react";
 const useThrottle = () => {
     const throttleSeed = useRef<number | null>(null);
   
-    const throttleFunction = useRef((func: Function, delay=200) => {
+    const throttleFunction = useRef((func: () => void, delay=200) => {
       if (!throttleSeed.current) {
         // Call the callback immediately for the first time
         func();

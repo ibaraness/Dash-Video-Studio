@@ -37,7 +37,7 @@ export class VideoListener {
             const mp4FallbackUrl = `${url}/${mp4filename}`;
 
             await this.videoService.updateDashData(id, mpdUrl || file, mp4FallbackUrl);
-            this.logger.log("Save dash URL to DB" + mpdUrl, VideoListener.name);
+            this.logger.log("Save dash URL to DB: " + mpdUrl, VideoListener.name);
 
             // Notify client that video was updated and send it (websocket)
             const video = await this.videoService.getById(id);

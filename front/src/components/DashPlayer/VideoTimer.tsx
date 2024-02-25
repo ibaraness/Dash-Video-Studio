@@ -1,5 +1,5 @@
 import { Box, Typography } from "@mui/material";
-import { useState, useRef, useEffect } from "react";
+import { useEffect } from "react";
 import { parseSecondsToTimeString } from "./utils/general-utils";
 import eventEmitter from "./utils/eventEmitter";
 import { VideoEvent } from "./hooks/useVideoEventEmitter";
@@ -36,7 +36,8 @@ const VideoTimer = ({ video: videoElement, src }: VideoTimerProps) => {
         return () => {
             listener.remove();
         }
-    },[src, videoDuration])
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    },[src])
 
     return (
         <Box sx={{ px: 2 }}>

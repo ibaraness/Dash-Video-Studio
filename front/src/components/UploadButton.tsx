@@ -2,11 +2,11 @@ import { styled } from '@mui/material/styles';
 import Button from '@mui/material/Button';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import { useAppDispatch, useAppSelector } from '../app/hooks';
-import { ProgressPayload, multipartUpload } from '../services/MultipartUpload';
+import { multipartUpload } from '../services/MultipartUpload';
 import { selectVideoInputValue, setPercent, setVideoInputValue, setVideoUploadStatus } from '../features/videoUpload/videoUploadSlice';
 import { setVideoId } from '../features/video/videoSlice';
 import { UploadedStatus } from '../features/videoUpload/videoUploadSlice.model';
-import { useMultiPartUploaderMutation } from '../features/api/apiSlice';
+import { ProgressPayload } from '../services/MultipartUpload.model';
 
 const VisuallyHiddenInput = styled('input')({
   clip: 'rect(0 0 0 0)',

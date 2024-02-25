@@ -1,7 +1,7 @@
 import { Paper, Stack, TextField, Grid, Button, Box, Chip } from "@mui/material";
 
 const VideoDetailsForm = () => {
-    const handleDelete = (event: any) => {
+    const handleDelete = () => {
         console.log(event);
     }
 

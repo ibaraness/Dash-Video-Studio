@@ -1,4 +1,4 @@
-import { PropsWithChildren, useCallback, useEffect, useRef, useState } from "react";
+import { PropsWithChildren, useCallback, useEffect, useRef } from "react";
 import VideoLoaderAnimation from "./VideoLoaderAnimation";
 import { useAppDispatch, useAppSelector } from "../../app/hooks";
 import { selectFullScreen, selectPlaying, setFullScreen, setPlaying } from "../../features/videoPlayer/videoPlayerSlice";
@@ -7,7 +7,6 @@ import useFullScreenEvent from "./hooks/useFullScreenEvent";
 import { Box } from "@mui/material";
 import eventEmitter from "./utils/eventEmitter";
 import useThrottle from "./hooks/useThrottle";
-import useDebounce from "./hooks/useDebounce";
 
 interface VideoPlayerFrameProps extends PropsWithChildren {
     mpdSrc: string;
@@ -26,13 +25,32 @@ const VideoPlayerFrame = ({ mpdSrc, videoElement, children }: VideoPlayerFramePr
 
     const mousePosition = useRef<{ x: number, y: number } | null>(null);
 
+    const updateFrameAspectRatio = useCallback((htmlElement: HTMLElement, isFullscreen: boolean = false) => {
+        if (!videoContainerRef.current) {
+            return;
+        }
+        if (isFullscreen) {
+            videoElement.style.width = "100vw";
+            videoElement.style.height = "100vh";
+            videoElement.style.position = "absolute";
+            videoElement.style.top = '0';// `${videoElement.offsetHeight / 2}px`;
+            return;
+        }
+        videoElement.style.position = "static";
+        videoElement.style.top = `0px`;
+        const width = videoContainerRef.current.offsetWidth;
+      
+
+      setFrameAspectRatio(htmlElement, width, AspectRatioAlg.W16H9);
+    },[videoElement.style])
+
     useEffect(() => {
         // Append video element to div container
         if (videoContainerRef.current && videoContainerRef.current.firstChild !== videoElement) {
             videoContainerRef.current.appendChild(videoElement);
             updateFrameAspectRatio(videoElement);
         }
-    }, [videoContainerRef])
+    }, [videoContainerRef,updateFrameAspectRatio, videoElement])
 
     // Handler window resize
     useEffect(() => {
@@ -47,40 +65,25 @@ const VideoPlayerFrame = ({ mpdSrc, videoElement, children }: VideoPlayerFramePr
         return () => {
             window.removeEventListener("resize", handleResize);
         }
-    });
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    },[mpdSrc]);
 
     // Handle fullscreen events
     const fullscreenHandler = useCallback((isFullscreen: boolean) => {
         updateFrameAspectRatio(videoElement, isFullscreen);
         dispatch(setFullScreen(isFullscreen));
-    }, [fullScreen])
+    }, [updateFrameAspectRatio, videoElement, dispatch])
 
-    useFullScreenEvent(playerContainerRef.current!, fullScreen, fullscreenHandler);
+    useFullScreenEvent(playerContainerRef.current!, fullScreen);
 
     useEffect(() => {
-        // fullscreenchange
         const listener = eventEmitter.addListener("fullscreenchange", fullscreenHandler);
         return () => {
             listener.remove();
         }
-    }, [fullScreen])
+    }, [fullScreen, fullscreenHandler])
 
-    const updateFrameAspectRatio = (htmlElement: HTMLElement, isFullscreen: boolean = false) => {
-        if (!videoContainerRef.current) {
-            return;
-        }
-        if (isFullscreen) {
-            videoElement.style.width = "100vw";
-            videoElement.style.height = "100vh";
-            videoElement.style.position = "absolute";
-            videoElement.style.top = '0';// `${videoElement.offsetHeight / 2}px`;
-            return;
-        }
-        videoElement.style.position = "static";
-        videoElement.style.top = `0px`;
-        const width = videoContainerRef.current.offsetWidth;
-        setFrameAspectRatio(htmlElement, width, AspectRatioAlg.W16H9);
-    }
+    
 
     const togglePlayVideo = () => {
         dispatch(setPlaying(!playing));

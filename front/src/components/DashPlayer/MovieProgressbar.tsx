@@ -1,7 +1,7 @@
-import { Box, LinearProgress, Slider } from "@mui/material";
-import { useState, useRef, useEffect, useMemo } from "react";
-import shaka from "shaka-player";
-import { selectBuffer, selectPlaying, selectProgressValue, setBuffer, setPlaying, setProgressValue } from "../../features/videoPlayer/videoPlayerSlice";
+import { Box } from "@mui/material";
+import { useRef, useEffect } from "react";
+import "shaka-player";
+import { selectBuffer, selectProgressValue, setBuffer, setProgressValue } from "../../features/videoPlayer/videoPlayerSlice";
 import { useAppDispatch, useAppSelector } from "../../app/hooks";
 import eventEmitter from "./utils/eventEmitter";
 import { VideoEvent } from "./hooks/useVideoEventEmitter";
@@ -17,10 +17,7 @@ const MovieProgressbar = ({ player, videoElement, src }: MovieProgressbarProps) 
 
     const clickableTrack = useRef<HTMLDivElement>(null);
 
-    const [viewPortWidth, setViewPortWidth] = useState(window.innerWidth);
-
     const buffer = useAppSelector(selectBuffer);
-    const playing = useAppSelector(selectPlaying);
     const dispatch = useAppDispatch();
 
     const duration = useRef<number>(0);
@@ -33,10 +30,9 @@ const MovieProgressbar = ({ player, videoElement, src }: MovieProgressbarProps) 
                 const percentSlice = 100 / duration.current;
                 dispatch(setBuffer(Math.round(bufferRange.end * percentSlice)))
             } catch (e) {
-
+                console.error(e);
             }
         }
-
         function updateTimeProgress() {
             const percentSlice = 100 / duration.current;
             const percentOfTime = Math.round(videoElement.currentTime * percentSlice);
@@ -55,7 +51,8 @@ const MovieProgressbar = ({ player, videoElement, src }: MovieProgressbarProps) 
             timeListener.remove();
             bufferListener.remove();
         }
-    }, [src, playing])
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [src])
 
     const setPosition = (value: number) => {
         dispatch(setProgressValue(value));
@@ -68,29 +65,14 @@ const MovieProgressbar = ({ player, videoElement, src }: MovieProgressbarProps) 
         return clickableTrack.current && clickableTrack.current.getClientRects()[0]
     }
 
-    // Caching 'getClientRects' DOM method
-    const getClickableTrackRectCache = useMemo(
-        () => getClickableTrackRect(),
-        [clickableTrack.current, viewPortWidth]
-    );
-
-    useEffect(() => {
-        function resizeHandler() {
-            setViewPortWidth(window.innerWidth);
-        }
-        window.addEventListener("resize", resizeHandler);
-        return () => {
-            window.removeEventListener("resize", resizeHandler);
-        }
-    }, [src])
-
     const handleTrackClick = (event: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
-        const parentRect = getClickableTrackRectCache;
+        const parentRect = getClickableTrackRect();
         if (parentRect) {
             const left = parentRect.left;
             const width = parentRect.width;
             const position = event.clientX - left;
             const percent = position * (100/width);
+            console.log("handleTrackClick", percent)
             setPosition(percent);
         }
     }

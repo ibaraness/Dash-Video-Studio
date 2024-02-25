@@ -2,10 +2,10 @@ import { Injectable } from "@nestjs/common"
 import { v4 as uuidv4 } from 'uuid';
 import { VideoBuckets, minioClient } from "./storage.config";
 import { UploadedObjectInfo } from "minio";
-import { publicReadPolicy } from "./storage-bucket.policy";
 import { LoggerService } from "src/logger/logger.service";
 import * as path from "path";
 import fs = require("fs");
+import { annonymousReadPolicy } from "./anonymous-read.policy";
 
 interface UploadFileResponse extends UploadedObjectInfo {
   url: string;
@@ -26,33 +26,54 @@ export class StorageService {
         return;
       }
       await minioClient.makeBucket(VideoBuckets.Dash, 'us-east-1');
-      await minioClient.setBucketPolicy(VideoBuckets.Dash, JSON.stringify(publicReadPolicy))
+      const policy = annonymousReadPolicy(VideoBuckets.Dash);
+      await minioClient.setBucketPolicy(VideoBuckets.Dash, policy);
 
     } catch (e) {
-      console.error(e);
       this.logger.error("Error initiating storage buckets", e, "StorageService");
     }
   }
 
+  async createBucket(name: string) {
+    try {
+      this.logger.debug("attempting to create bucket", "StorageService");
+      const exist = await minioClient.bucketExists(name);
+      if (exist) {
+        return;
+      }
+      await minioClient.makeBucket(name, 'us-east-1');
+      const policy = annonymousReadPolicy(name);
+      await minioClient.setBucketPolicy(name, policy);
+    } catch (e) {
+      this.logger.error("Error creating bucket", e, "StorageService");
+    }
+  }
+
   getEndPoint() {
-    const host = process?.env?.MINIO_HOST || "localhost";
+    const host = process?.env?.MINIO_EXTERNAL_HOST || "localhost";
     const port = process?.env?.MINIO_PORT || "9000";
     const protocol = process.env.NEST_MODE === "prod" ? 'https' : 'http';
     return port !== "80" ? `${protocol}://${host}:${port}` : `${protocol}://${host}:${port}`
   }
 
   async uploadFile(dashBucket: string, filename: string, filepath: string): Promise<UploadFileResponse> {
-    const res = await minioClient.fPutObject(dashBucket, filename, filepath);
-    const url = `${this.getEndPoint()}/${dashBucket}/${filename}`;
-    return {
-      ...res,
-      url
+    try {
+      const res = await minioClient.fPutObject(dashBucket, filename, filepath);
+      const url = `${this.getEndPoint()}/${dashBucket}/${filename}`;
+      this.logger.debug(`uploadFile() URL:${url}`, StorageService.name);
+      return {
+        ...res,
+        url
+      }
+    } catch (e) {
+      this.logger.error("Error uploading file", e, "StorageService");
     }
+
   }
 
-  async uploadFolder(dashBucket: string, folderPath: string, outputFolderName?: string): Promise<{url:string}> {
+  async uploadFolder(dashBucket: string, folderPath: string, outputFolderName?: string): Promise<{ url: string }> {
 
-    if(!fs.existsSync(folderPath)){
+    if (!fs.existsSync(folderPath)) {
       throw new Error("Folder does not exist in that path");
     }
     const files = fs.readdirSync(folderPath);
@@ -66,6 +87,7 @@ export class StorageService {
       }
     }
     const url = `${this.getEndPoint()}/${dashBucket}/${uniquePath}`;
+    this.logger.debug(`uploadFolder() URL:${url}`, StorageService.name);
     return {
       url
     }

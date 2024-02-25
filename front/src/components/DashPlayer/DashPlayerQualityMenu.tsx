@@ -1,12 +1,11 @@
 import { ListItem, ListItemButton, ListItemIcon, ListItemText, Paper, List } from "@mui/material";
 import CheckIcon from '@mui/icons-material/Check';
-import { useState } from "react";
-import shaka from "shaka-player";
+import "shaka-player";
 import { useAppSelector, useAppDispatch } from "../../app/hooks";
 import { selectSelectedTrack, setSelectedTrack, setShowQualityMenu } from "../../features/videoPlayer/videoPlayerSlice";
 
 export interface DashPlayerQualityMenuProps {
-    variantTracks: any[];
+    variantTracks: shaka.extern.TrackList;
 }
 
 const DashPlayerQualityMenu = ({ variantTracks }: DashPlayerQualityMenuProps) => {
@@ -26,8 +25,8 @@ const DashPlayerQualityMenu = ({ variantTracks }: DashPlayerQualityMenuProps) =>
         dispatch(setShowQualityMenu(false));
     }
 
-    const qualitiesList = variantTracks.map(track => {
-        const text = `${Math.min(track.width, track.height)}p`;
+    const qualitiesList = variantTracks.filter(track => !!track.height && !!track.width).map(track => {
+        const text = `${Math.min(track.width!, track.height!)}p`;
         return (
             <ListItem key={track.id} disablePadding={true}>
                 <ListItemButton sx={{ py: 0 }} onClick={() => handlesSelectVariantTrack(track)} >

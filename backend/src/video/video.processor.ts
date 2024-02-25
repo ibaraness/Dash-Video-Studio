@@ -1,11 +1,8 @@
 import { Process, Processor } from '@nestjs/bull';
-import { Logger } from '@nestjs/common';
 import { Job } from 'bull';
 import { VideoService } from './video.service';
-import { from, switchMap, tap, map } from 'rxjs';
 import { UplodedVideoData } from './video.model';
 import { TranscodeApiService } from 'src/transcode/transcode-api.service';
-import { ChunkSavedStatus } from './video-upload.model';
 import { v4 as uuidv4 } from 'uuid';
 import { StorageService } from 'src/storage/storage.service';
 import { VideoBuckets } from "./../storage/storage.config";
@@ -25,20 +22,20 @@ export class VideoProcessor {
     @Process('processUploadedVideo')
     async processUploadedVideo(job: Job<UplodedVideoData>) {
         const { videoPath } = job.data;
-
+        this.logger.log("processUploadedVideo: " + videoPath, VideoProcessor.name);
         try {
-            this.logger.debug("About to process video", VideoProcessor.name);
+            this.logger.log("About to process video", VideoProcessor.name);
             
             // Generate storage UUID folder for video and files
             const uniqueFolderName = uuidv4();
 
             // Get video metadata
             const metadata = await this.videoService.getVideoBasicInfo(videoPath);
-            this.logger.debug("About to metadata", VideoProcessor.name);
+            this.logger.log("Fetched to metadata", VideoProcessor.name);
 
             // Get a screenshot from the video
             const screenshotPath = await this.videoService.getVideoScreenShot(videoPath);
-            this.logger.debug("About to saveVideoScreenShot", VideoProcessor.name);
+            this.logger.log("Generated ScreenShot", VideoProcessor.name);
 
             // Save screenshot in storage
             const imageFilename = path.basename(screenshotPath);
@@ -48,16 +45,16 @@ export class VideoProcessor {
                 imageFilename,
                 screenshotPath
             );
-            this.logger.debug("About to uploadFile to storage", VideoProcessor.name);
+            this.logger.log("Uploaded screenshot to storage", VideoProcessor.name);
 
             // Save storage location on DB
             const { id } = await this.videoService.saveVideo(videoPath, metadata, url)
-            this.logger.debug("About to saveVideo to database", VideoProcessor.name);
+            this.logger.log("Video saved to database", VideoProcessor.name);
             
             // Send the video to transcoding process
             const { width, height } = metadata;
             this.transcodeApiService.triggerTranscodeDash({ width, height, id, videoPath, uniqueFolderName });
-            this.logger.debug("Video processing done!", VideoProcessor.name);
+            this.logger.log("Video processing done!", VideoProcessor.name);
 
         } catch (e) {
             this.logger.error("Processing video error", e, VideoProcessor.name)

@@ -5,6 +5,8 @@ import { Subject } from 'rxjs';
 import { TranscodeDashProgress, TrascodeStatus } from './transcode.model';
 import { LoggerService } from 'src/logger/logger.service';
 const path = require('path');
+const ffprobePath = require('@ffprobe-installer/ffprobe').path;
+const ffmpegPath = require('@ffmpeg-installer/ffmpeg').path;
 
 // TODO: check video frame rate, process with different bitrate on different frame rates
 
@@ -68,8 +70,8 @@ export class TranscodeService {
         // ##### FFMPEG SETTINGS #####
 
         // Set ffmpeg path to fluent-ffmpeg
-        ffmpeg.setFfmpegPath(require('ffmpeg-static'));
-        ffmpeg.setFfprobePath(require('ffprobe-static').path);
+        ffmpeg.setFfmpegPath(ffmpegPath);
+        ffmpeg.setFfprobePath(ffprobePath);
 
         // Create FFMPEG process with source and target directory
         const process = ffmpeg({

@@ -1,7 +1,7 @@
 import { EntityState, createEntityAdapter, createSelector } from '@reduxjs/toolkit';
 import { apiSlice } from '../api/apiSlice';
 import { RootState } from '../../store/store';
-import { BatchTranscode, VideoResponse } from './videoListSlice.model';
+import { VideoResponse } from './videoListSlice.model';
 
 // Creating an entity adapter to normalize the user lists into
 // object based collection with the users IDs as keys

@@ -18,6 +18,7 @@ import { UplodedVideoDataCreator, VideoProcess, VideoUploadDTO } from './video.m
 import { ChunkSavedStatus } from "./video-upload.model";
 import fs = require("fs");
 import * as path from "path";
+import { StorageService } from "src/storage/storage.service";
 
 @Controller('video')
 export class VideoController {
@@ -25,13 +26,14 @@ export class VideoController {
     constructor(
         private videoService: VideoService,
         private videoUploadService: VideoUploadService,
+        private storageService: StorageService,
         @InjectQueue('video') private readonly videoQueue: Queue
     ) { }
 
     // TODO: Remove for production
     @Get('clear')
     async clear() {
-        if(process.env.NEST_MODE === 'dev'){
+        if (process.env.NEST_MODE === 'dev') {
             return this.videoService.clear();
         }
     }
@@ -41,13 +43,38 @@ export class VideoController {
         return this.videoService.getAll();
     }
 
+    @Get('test_path')
+    async testPath() {
+        const { spawn } = require('child_process');
+
+        // Spawn a new process to run the 'ls' command
+        // const ls = spawn('ls', ['-l', '-a']);
+
+        const ls = spawn('pwd');
+
+        // Listen for output from the process
+        ls.stdout.on('data', (data) => {
+            console.log(`stdout: ${data}`);
+        });
+
+        // Listen for errors
+        ls.stderr.on('data', (data) => {
+            console.error(`stderr: ${data}`);
+        });
+
+        // Listen for the process to exit
+        ls.on('close', (code) => {
+            console.log(`child process exited with code ${code}`);
+        });
+    }
+
     @Get('/member/:id')
     async getMemberPath(@Param('id') videoId: number) {
         // get a list of all the files in the folder
         const { dashFilePath } = await this.videoService.loadvideo(videoId);
         const dashFolder = path.dirname(dashFilePath);
         const files = fs.readdirSync(dashFolder);
-        return {"data": files}
+        return { "data": files }
     }
 
     @Get('stream/:id/:resolution?')
@@ -76,6 +103,15 @@ export class VideoController {
         return metadata;
     }
 
+    @Post('/create-bucket')
+    async createBucket(@Body() { name }: { name: string }) {
+        console.log("You tries to create a bucket", name);
+        if (name && name.length > 2) {
+            return this.storageService.createBucket(name);
+        }
+        return { name };
+    }
+
     @Post()
     @UseInterceptors(FileInterceptor('file'))
     async uploadAndTranscodeDashVideo(
@@ -85,6 +121,7 @@ export class VideoController {
         return from(this.videoUploadService.handleSavingChunk(file.buffer, body)).pipe(
             tap(({ message, status, videoPath }) => {
                 if (status === ChunkSavedStatus.Done) {
+                    console.log("videoPath", videoPath)
                     this.videoQueue.add(
                         VideoProcess.ProcessUploadedVideo,
                         UplodedVideoDataCreator(message, status, videoPath)

@@ -1,6 +1,6 @@
 import { Box } from "@mui/material";
 import { useEffect } from "react";
-import shaka from "shaka-player";
+import "shaka-player";
 import DashPlayerQualityMenu from "./DashPlayerQualityMenu";
 import { selectVariantTracks, setVariantTracks } from "../../features/videoPlayer/videoPlayerSlice";
 import { useAppDispatch, useAppSelector } from "../../app/hooks";
@@ -23,7 +23,7 @@ const QualitySwitcher = ({ player, src }: QualitySwitcherProps) => {
         } catch (e) {
             console.error(e);
         }
-    }, [src]);
+    }, [src, player, dispatch]);
 
     return (
         <Box sx={{ width: "200px", position: "absolute", right: "4px", bottom: "60px" }}>

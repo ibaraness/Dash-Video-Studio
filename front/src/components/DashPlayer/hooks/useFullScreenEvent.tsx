@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import eventEmitter from "../utils/eventEmitter";
 
-export default function useFullScreenEvent(elem: HTMLElement, fullScreen:boolean, callback: (isFullscreen:boolean) => void) {
+export default function useFullScreenEvent(elem: HTMLElement, fullScreen:boolean) {
     const isFullScreen = useRef<boolean>(false);
 
     useEffect(() => {
@@ -31,7 +31,7 @@ export default function useFullScreenEvent(elem: HTMLElement, fullScreen:boolean
                     document.exitFullscreen();
                 }
             } catch (e) {
-
+                console.error(e);
             }
         }
         if (fullScreen) {

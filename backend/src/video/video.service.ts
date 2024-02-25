@@ -1,6 +1,4 @@
 import { HttpStatus, Inject, Injectable, NotFoundException } from "@nestjs/common";
-import * as ffprobeStatic from 'ffprobe-static';
-import ffmpegStatic from 'ffmpeg-static';
 import { promisify } from "util";
 import * as ffmpeg from 'fluent-ffmpeg';
 import * as path from "path";
@@ -15,9 +13,13 @@ import { CACHE_MANAGER } from "@nestjs/cache-manager";
 import { Cache } from "cache-manager";
 import * as sharp from "sharp";
 import { Config } from "src/config/app.config";
+import { LoggerService } from "src/logger/logger.service";
 
-ffmpeg.setFfmpegPath(ffmpegStatic);
-ffmpeg.setFfprobePath(ffprobeStatic.path);
+const ffprobePath = require('@ffprobe-installer/ffprobe').path;
+const ffmpegPath = require('@ffmpeg-installer/ffmpeg').path;
+
+ffmpeg.setFfmpegPath(ffmpegPath);
+ffmpeg.setFfprobePath(ffprobePath);
 
 export const ffprobeAsync = promisify<string, ffmpeg.FfprobeData>(ffmpeg.ffprobe);
 
@@ -26,23 +28,30 @@ export class VideoService {
 
     constructor(
         @InjectRepository(Video) private readonly videoRepository: Repository<Video>,
-        @Inject(CACHE_MANAGER) private cacheManager: Cache
+        @Inject(CACHE_MANAGER) private cacheManager: Cache,
+        private logger: LoggerService
     ) { }
 
     async getVideoBasicInfo(videoPath: string): Promise<VideoBasicInfo> {
-        const metadata = await ffprobeAsync(videoPath);
-        const filename = path.parse(videoPath).name
-        const duration = metadata.format.duration && metadata.format.duration;
-        const bitRate = Number(metadata.streams[0].bit_rate || 0);
-        const size = Number(metadata.format.size || 0);
-        const width = metadata.streams[0].width;
-        const height = metadata.streams[0].height;
-        const codecName = metadata.streams[0].codec_name;
-        const codecType = metadata.streams[0].codec_long_name;
-        const frameRate = metadata.streams[0].r_frame_rate;
-        const frames = Number(metadata.streams[0].nb_frames || 0);
-        const info = { filename, duration, bitRate, size, width, height, codecName, codecType, frames, frameRate }
-        return info
+        try {
+            const metadata = await ffprobeAsync(videoPath);
+            const filename = path.parse(videoPath).name
+            const duration = metadata.format.duration && metadata.format.duration;
+            const bitRate = Number(metadata.streams[0].bit_rate || 0);
+            const size = Number(metadata.format.size || 0);
+            const width = metadata.streams[0].width;
+            const height = metadata.streams[0].height;
+            const codecName = metadata.streams[0].codec_name;
+            const codecType = metadata.streams[0].codec_long_name;
+            const frameRate = metadata.streams[0].r_frame_rate;
+            const frames = Number(metadata.streams[0].nb_frames || 0);
+            const info = { filename, duration, bitRate, size, width, height, codecName, codecType, frames, frameRate }
+            return info
+        } catch (e) {
+            this.logger.error("Error in getVideoBasicInfo", e, VideoService.name);
+            throw Error("Unknown problem with getting Video Metadata")
+        }
+
     }
 
     async getVideoInfo(videoPath: string): Promise<ffmpeg.FfprobeData> {
@@ -78,7 +87,7 @@ export class VideoService {
         }
     }
 
-    private async generateVideoScfreenshot(videoPath:string, imageFilename: string, imagePath: string):Promise<string> {
+    private async generateVideoScfreenshot(videoPath: string, imageFilename: string, imagePath: string): Promise<string> {
         return new Promise((resolve, reject) => {
             ffmpeg()
                 // Input file
@@ -100,7 +109,6 @@ export class VideoService {
 
     async getVideoScreenShot(videoPath: string): Promise<string> {
 
-        ffmpeg.setFfmpegPath(require('ffmpeg-static'));
         if (!fs.existsSync(videoPath)) {
             throw new NotFoundException("Video not found on that path");
         }
@@ -109,7 +117,7 @@ export class VideoService {
 
         const thumbWidth = Config.upload.screnshots.width;
         const thumbHeight = Config.upload.screnshots.height;
-        
+
         // Temporary image created by ffmpeg 
         const ffmpegFilname = "temp_thumb.jpg";
 
@@ -119,15 +127,15 @@ export class VideoService {
         if (!fs.existsSync(imagePath)) {
             fs.mkdirSync(imagePath, { recursive: true });
         }
-        
+
         // Grab a screenshot from the video
         const ffmpegScreeshotPath = await this.generateVideoScfreenshot(videoPath, ffmpegFilname, imagePath);
 
         // Resize and crop the screenshot image to a unified size
         const imageResizer = async (inputImagePath: string, fileOutputPath: string, width: number, height: number) => {
             await sharp(inputImagePath)
-            .jpeg().resize(width, height)
-            .toFile(fileOutputPath);
+                .jpeg().resize(width, height)
+                .toFile(fileOutputPath);
             return fileOutputPath;
         }
 

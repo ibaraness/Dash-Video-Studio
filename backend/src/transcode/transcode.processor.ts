@@ -1,5 +1,4 @@
 import { Process, Processor } from "@nestjs/bull";
-import { Logger } from "@nestjs/common";
 import { TranscodeService } from "./transcode.service";
 import { TranscodeGateway } from "./transcode.gateway";
 import { Job } from "bull";

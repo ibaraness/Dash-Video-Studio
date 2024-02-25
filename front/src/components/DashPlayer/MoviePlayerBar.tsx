@@ -1,5 +1,4 @@
-import { Box, Button, Grid, IconButton, Slider, Stack } from "@mui/material";
-import { useState, useEffect } from "react";
+import { Box, Button, Grid, IconButton, Slider } from "@mui/material";
 import VideoTimer from "./VideoTimer";
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import PauseIcon from '@mui/icons-material/Pause';
@@ -8,12 +7,10 @@ import VolumeOffIcon from '@mui/icons-material/VolumeOff';
 import FullscreenIcon from '@mui/icons-material/Fullscreen';
 import FullscreenExitIcon from '@mui/icons-material/FullscreenExit';
 import SettingsIcon from '@mui/icons-material/Settings';
-import VolumeDown from '@mui/icons-material/VolumeDown';
-import VolumeUp from '@mui/icons-material/VolumeUp';
 import QualitySwitcher from "./QualitySwitcher";
-import shaka from "shaka-player";
+import "shaka-player";
 import { useAppSelector, useAppDispatch } from "../../app/hooks";
-import { selectAutoResolution, selectFullScreen, selectLoaded, selectMute, selectPlaying, selectSelectedTrack, selectShowQualityMenu, selectVolume, setFullScreen, setMute, setPlaying, setShowQualityMenu, setVolume } from "../../features/videoPlayer/videoPlayerSlice";
+import { selectAutoResolution, selectFullScreen, selectMute, selectPlaying, selectSelectedTrack, selectShowQualityMenu, selectVolume, setFullScreen, setMute, setPlaying, setShowQualityMenu, setVolume } from "../../features/videoPlayer/videoPlayerSlice";
 
 export interface MoviePlayerBarProps {
     videoElement: HTMLVideoElement,
@@ -25,7 +22,6 @@ const MoviePlayerBar = ({ videoElement, src, player }: MoviePlayerBarProps) => {
 
     // const [playing, setPlaying] = useState<boolean>(false);
     const playing = useAppSelector(selectPlaying);
-    const loaded = useAppSelector(selectLoaded);
     const fullScreen = useAppSelector(selectFullScreen);
     const volume = useAppSelector(selectVolume);
     const mute = useAppSelector(selectMute);
@@ -34,12 +30,6 @@ const MoviePlayerBar = ({ videoElement, src, player }: MoviePlayerBarProps) => {
     const autoResolution = useAppSelector(selectAutoResolution);
 
     const dispatch = useAppDispatch();
-
-    useEffect(() => {
-        if (!loaded) {
-            // Do something
-        }
-    }, [loaded])
 
     const togglePlayVideo = () => {
         dispatch(setPlaying(!playing));

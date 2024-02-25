@@ -1,6 +1,6 @@
 import { useRef, useEffect } from "react";
-import shaka from 'shaka-player';
-//videoContainerRef: React.RefObject<HTMLDivElement>
+import 'shaka-player';
+
 export default function useShakaVideoPlayer(uniquId: number){
     const isSupportedBrowser = useRef<boolean>(true);
 
@@ -11,9 +11,6 @@ export default function useShakaVideoPlayer(uniquId: number){
     const videoElementRef = useRef<HTMLVideoElement>(document.createElement('video'));
 
     useEffect(() => {
-
-        // Reference the video HTML element
-        const videoElement: HTMLVideoElement = videoElementRef.current as HTMLVideoElement;
 
         // Install built-in polyfills to patch browser incompatibilities.
         shaka.polyfill.installAll();
@@ -29,11 +26,6 @@ export default function useShakaVideoPlayer(uniquId: number){
             // Set supported flag to false so fallback player can be activated (regular streaming);
             isSupportedBrowser.current = false;
         }
-
-        // // Append video element to div container
-        // if (videoContainerRef.current && videoContainerRef.current.firstChild !== videoElement) {
-        //     videoContainerRef.current.appendChild(videoElement);
-        // } 
 
     }, [uniquId]);
 

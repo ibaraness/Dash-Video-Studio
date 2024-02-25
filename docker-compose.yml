@@ -1,0 +1,68 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres
+    container_name: vs_pgdb
+    restart: always
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: ${POSTGRES_DATABASE} #postgres
+      POSTGRES_USER: ${POSTGRES_USER} #postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD} #pass12345
+    volumes:
+      - local_pgdata:/var/lib/postgresql/data
+  minio:
+    image: minio/minio:latest
+    container_name: vs_minio
+    ports:
+      - '9000:9000'
+      - '9001:9001'
+    volumes:
+      - 'minio_data:/data'
+    environment:
+      - MINIO_ROOT_USER=${MINIO_USER}
+      - MINIO_ROOT_PASSWORD=${MINIO_PASSWORD}
+      - MINIO_DEFAULT_BUCKETS=${MINIO_DEFAULT_BUCKET}
+      - MINIO_OPTS=--cors '{"CORSRules":[{"AllowedOrigins":["*"],"AllowedHeaders":["*"],"AllowedMethods":["GET","HEAD","POST","PUT","DELETE"],"MaxAgeSeconds":3000,"ExposeHeaders":["Etag"]}]}'
+    command: server /data --console-address ":9001"
+  nestjs:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      POSTGRES_HOST: ${POSTGRES_HOST}
+      POSTGRES_PORT: ${POSTGRES_PORT}
+      POSTGRES_DATABASE: ${POSTGRES_DATABASE} #postgres
+      POSTGRES_USER: ${POSTGRES_USER} #postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD} #pass12345
+      MODE: ${NEST_MODE}
+      NEST_MODE: ${NEST_MODE}
+      MINIO_HOST: ${MINIO_HOST}
+      MINIO_PORT: ${MINIO_PORT}
+      MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY}
+      MINIO_SECRET_KEY: ${MINIO_SECRET_KEY}
+      REDIS_HOST: ${REDIS_HOST}
+      REDIS_PORT: ${REDIS_PORT}
+    depends_on:
+      - db
+    
+
+  redis:
+    image: redis:7.2.4
+    ports:
+      - "6379:6379"
+  reactjs:
+    build:
+      context: ./front
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+
+volumes:
+  local_pgdata:
+  minio_data:
+    driver: local

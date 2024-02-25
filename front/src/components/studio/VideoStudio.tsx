@@ -6,11 +6,9 @@ import { VideoList } from "../videoList/VideoList"
 import { useAppDispatch, useAppSelector } from "../../app/hooks"
 import DashPlayer from "../DashPlayer/DashPlayer"
 import { useEffect } from "react"
-import { selectAllVideos, selectVideoById, useGetVideosQuery } from "../../features/videoList/videoListSlice"
+import { useGetVideosQuery } from "../../features/videoList/videoListSlice"
 import { socket } from "../../sockets/socket"
-import { selectFallbackURL, setVideo } from "../../features/video/videoSlice"
-import { VideoResponse } from "../../features/videoList/videoListSlice.model"
-import { VideoJSContainer } from "../VideoJs/VideoJS"
+import { setVideo } from "../../features/video/videoSlice"
 
 interface TranscodeResponse {
     status: string;
@@ -21,7 +19,6 @@ interface TranscodeResponse {
 const VideoStudio = () => {
     const percent = useAppSelector(selectPercent);
     const transcodePercentage = useAppSelector(selectTranscodePercent);
-    const videos = useAppSelector(selectAllVideos);
     const dispatch = useAppDispatch();
 
     
@@ -46,16 +43,14 @@ const VideoStudio = () => {
 
         socket.on('videoUpdated', async (data) => {
             await refetch();
-            console.log("videoUpdated", data);
             dispatch(setVideo(data));
         })
-
         return () => {
             socket.off('connect', onConnect);
             socket.off('disconnect', onDisconnect);
         };
 
-    }, []);
+    });
 
     const handleClearForm = () => {
         dispatch(setPercent(0));

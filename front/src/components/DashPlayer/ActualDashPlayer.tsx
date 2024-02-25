@@ -2,7 +2,7 @@ import 'vimond-replay/index.css';
 import { useAppDispatch, useAppSelector } from '../../app/hooks';
 import { selectDashURL } from '../../features/video/videoSlice';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Box, Fade } from '@mui/material';
+import { Box } from '@mui/material';
 import useShakaVideoPlayer from './hooks/useShakaVideoPlayer';
 import MovieProgressbar from './MovieProgressbar';
 import MoviePlayerBar from './MoviePlayerBar';
@@ -69,7 +69,7 @@ const ActualDashPlayer = () => {
             videoElement.setAttribute("autoplay", "true");
             loadDashVideo();
         }
-    }, [mpdSrc]);
+    }, [mpdSrc, player, videoElement, dispatch]);
 
     // Toggle auto ABR and set auto bitrate or user select 
     useShakaABR(selectedTrack, player);
@@ -78,7 +78,7 @@ const ActualDashPlayer = () => {
         function updateAutoABR() {
             if (videoElement.readyState === 4) {
                 if (selectedTrack.id === -1) {
-                    const active = player.getVariantTracks().find(track => track.active);
+                    const active = player.getVariantTracks().find((track) => track.active);
                     const resolution = Math.min(active?.width || 0, active?.height || 0);
                     dispatch(setAutoResolution(resolution > 0 ? `${resolution}p` : ""));
                 }
@@ -88,7 +88,8 @@ const ActualDashPlayer = () => {
         return () => {
             listener.remove();
         }
-    }, [mpdSrc]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [mpdSrc, player, selectedTrack]);
 
     // Toggle video player play by state
     useEffect(() => {
@@ -98,15 +99,15 @@ const ActualDashPlayer = () => {
         } else {
             videoElement?.pause();
         }
-    }, [playing]);
+    }, [playing, videoElement]);
 
     useEffect(() => {
         videoElement.muted = mute;
-    }, [mute]);
+    }, [mute, videoElement]);
 
     useEffect(() => {
         videoElement.volume = volume / 100;
-    }, [volume]);
+    }, [volume, videoElement]);
 
     
 
@@ -118,7 +119,7 @@ const ActualDashPlayer = () => {
                 document.body.style.cursor = 'none';
             }
         }, delay)
-    }, [mpdSrc, fullScreen]);
+    }, []);
 
     useEffect(() => {
         function fullScreenHandler(isFullscreen: boolean) {
@@ -131,7 +132,7 @@ const ActualDashPlayer = () => {
             document.body.style.cursor = 'default';
         }
 
-        function showMenuAgain(_: number) {
+        function showMenuAgain() {
             if (fullScreen && !isMenuHideDelayActive.current) {
                 setIsHidePlayerMenu(false);
                 isMenuHideDelayActive.current = true;
@@ -146,7 +147,7 @@ const ActualDashPlayer = () => {
             fullScreenListener.remove();
             mouseListener.remove();
         }
-    }, [fullScreen]);
+    }, [fullScreen, hideMenuDelay]);
 
     useEffect(() => {
         setIsHidePlayerMenu(fullScreen);

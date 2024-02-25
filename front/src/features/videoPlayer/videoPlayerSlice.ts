@@ -1,15 +1,10 @@
 import { PayloadAction, createSlice } from "@reduxjs/toolkit";
-import shaka from "shaka-player";
+import "shaka-player";
 import { RootState } from "../../store/store";
 
 export interface SelectedTrackInfo {
     id: number;
     title: string;
-}
-
-export interface EventState {
-    value: any;
-    id: number;
 }
 
 interface VideoPlayState {
@@ -29,7 +24,6 @@ interface VideoPlayState {
     isBuffering: boolean;
     autoResolution: string;
     initialized: boolean;
-    progressEvent: EventState;
 }
 
 const initialState: VideoPlayState = {
@@ -49,7 +43,6 @@ const initialState: VideoPlayState = {
     isBuffering: false,
     autoResolution: "",
     initialized: false,
-    progressEvent: {id:0, value:0}
 }
 
 export const videoPlayerSlice = createSlice({
@@ -111,13 +104,7 @@ export const videoPlayerSlice = createSlice({
         },
         setInitialized: (state, action: PayloadAction<boolean>) => {
             state.initialized = action.payload;
-        },
-        setProgressEvent: (state, action: PayloadAction<any>) => {
-            state.progressEvent = {
-                value: action.payload, 
-                id: Math.random() * 123545678
-            }
-        },
+        }
     }
 });
 

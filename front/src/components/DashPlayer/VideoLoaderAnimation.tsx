@@ -23,7 +23,8 @@ const VideoLoaderAnimation = ({ src, videoElement }: VideoLoaderAnimationProps) 
         return () => {
             listener.remove();
         }
-    }, [src]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    },[src]);
 
     useEffect(() => {
         function loadeddataHandler() {
@@ -33,7 +34,7 @@ const VideoLoaderAnimation = ({ src, videoElement }: VideoLoaderAnimationProps) 
         return () => {
             listener.remove();
         }
-    }, [src])
+    }, [src, dispatch])
 
     return (
         <>

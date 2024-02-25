@@ -1,4 +1,4 @@
-import shaka from "shaka-player";
+import "shaka-player";
 import { SelectedTrackInfo } from "../../../features/videoPlayer/videoPlayerSlice";
 import { useEffect } from "react";
 
@@ -30,6 +30,6 @@ export default function useShakaABR(selectedTrack: SelectedTrackInfo, player: sh
         } catch (err) {
             console.error(err)
         }
-    }, [selectedTrack]);
+    }, [selectedTrack, player]);
 
 }

@@ -1,5 +1,6 @@
 import * as winston from 'winston';
 import 'winston-daily-rotate-file';
+require('dotenv').config();
 
 // Create transports instance
 const transports = [
@@ -30,7 +31,7 @@ const transports = [
 
 // Create and export the logger instance
 export const logger = winston.createLogger({
-  level: 'info',
+  level: process.env?.LOG_LEVEL || 'info',
   format: winston.format.json(),
   transports,
 });
