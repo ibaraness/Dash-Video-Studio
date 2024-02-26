@@ -3,6 +3,7 @@ import { useAppDispatch, useAppSelector } from "../../app/hooks";
 import { selectIsBuffering, setIsBuffering } from "../../features/videoPlayer/videoPlayerSlice";
 import { useEffect } from "react";
 import eventEmitter from "./utils/eventEmitter";
+import { VideoEvent } from "./hooks/useVideoEventEmitter";
 
 interface VideoLoaderAnimationProps {
     src: string;
@@ -19,22 +20,23 @@ const VideoLoaderAnimation = ({ src, videoElement }: VideoLoaderAnimationProps) 
                 dispatch(setIsBuffering(false));
             }
         }
-        const listener = eventEmitter.addListener('progress', progressHandler);
-        return () => {
-            listener.remove();
-        }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    },[src]);
 
-    useEffect(() => {
         function loadeddataHandler() {
             dispatch(setIsBuffering(true));
         }
-        const listener = eventEmitter.addListener('waiting', loadeddataHandler);
-        return () => {
-            listener.remove();
+
+        function canPlayThroughHandler(){
+            dispatch(setIsBuffering(false));
         }
-    }, [src, dispatch])
+        const progressListener = eventEmitter.addListener(VideoEvent.Progress, progressHandler);
+        const waitingListener = eventEmitter.addListener(VideoEvent.Waiting, loadeddataHandler);
+        const canPlayThroughListener = eventEmitter.addListener(VideoEvent.CanPlayThrough, canPlayThroughHandler)
+        return () => {
+            waitingListener.remove();
+            canPlayThroughListener.remove();
+            progressListener.remove();
+        }
+    }, [src, dispatch, videoElement.readyState])
 
     return (
         <>

@@ -6,30 +6,33 @@ export default function useVideoEventEmitter(videoElement: HTMLVideoElement) {
     useEffect(() => {
         function progressHandler() { eventEmitter.emit(VideoEvent.Progress) }
         function waitingHandler() { eventEmitter.emit(VideoEvent.Waiting) }
-        function endedHandler() { eventEmitter.emit('ended') }
-        function errorHandler() { eventEmitter.emit('error') }
-        function pauseHandler() { eventEmitter.emit('pause') }
-        function playHandler() { eventEmitter.emit('play') }
+        function endedHandler() { eventEmitter.emit(VideoEvent.Ended) }
+        function errorHandler() { eventEmitter.emit(VideoEvent.Error) }
+        function pauseHandler() { eventEmitter.emit(VideoEvent.Pause) }
+        function playHandler() { eventEmitter.emit(VideoEvent.Play) }
         function timeUpdateHandler() { eventEmitter.emit(VideoEvent.TimeUpdate) }
         function loadedDataHandler() { eventEmitter.emit(VideoEvent.LoadedData) }
+        function playThroughDataHandler() { eventEmitter.emit(VideoEvent.CanPlayThrough) }
 
         videoElement.addEventListener(VideoEvent.Progress, progressHandler);
         videoElement.addEventListener(VideoEvent.Waiting, waitingHandler);
-        videoElement.addEventListener("ended", endedHandler);
-        videoElement.addEventListener("error", errorHandler);
-        videoElement.addEventListener("pause", pauseHandler);
-        videoElement.addEventListener("play", playHandler);
+        videoElement.addEventListener(VideoEvent.Ended, endedHandler);
+        videoElement.addEventListener(VideoEvent.Error, errorHandler);
+        videoElement.addEventListener(VideoEvent.Pause, pauseHandler);
+        videoElement.addEventListener(VideoEvent.Play, playHandler);
         videoElement.addEventListener(VideoEvent.TimeUpdate, timeUpdateHandler);
         videoElement.addEventListener(VideoEvent.LoadedData, loadedDataHandler);
+        videoElement.addEventListener(VideoEvent.CanPlayThrough, playThroughDataHandler);
         return () => {
             videoElement.removeEventListener(VideoEvent.Progress, progressHandler);
             videoElement.removeEventListener(VideoEvent.Waiting, waitingHandler);
-            videoElement.removeEventListener("ended", endedHandler);
-            videoElement.removeEventListener("error", errorHandler);
-            videoElement.removeEventListener("pause", pauseHandler);
-            videoElement.removeEventListener("play", playHandler);
+            videoElement.removeEventListener(VideoEvent.Ended, endedHandler);
+            videoElement.removeEventListener(VideoEvent.Error, errorHandler);
+            videoElement.removeEventListener(VideoEvent.Pause, pauseHandler);
+            videoElement.removeEventListener(VideoEvent.Play, playHandler);
             videoElement.removeEventListener(VideoEvent.TimeUpdate, timeUpdateHandler);
             videoElement.removeEventListener(VideoEvent.LoadedData, loadedDataHandler);
+            videoElement.removeEventListener(VideoEvent.CanPlayThrough, playThroughDataHandler);
         }
 
     }, [videoElement])
@@ -43,5 +46,6 @@ export enum VideoEvent {
     Pause = "pause",
     Play = "play",
     TimeUpdate = "timeupdate",
-    LoadedData = "loadeddata"
+    LoadedData = "loadeddata",
+    CanPlayThrough = "canplaythrough"
 }

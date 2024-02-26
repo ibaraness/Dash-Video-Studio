@@ -11,6 +11,9 @@ import QualitySwitcher from "./QualitySwitcher";
 import "shaka-player";
 import { useAppSelector, useAppDispatch } from "../../app/hooks";
 import { selectAutoResolution, selectFullScreen, selectMute, selectPlaying, selectSelectedTrack, selectShowQualityMenu, selectVolume, setFullScreen, setMute, setPlaying, setShowQualityMenu, setVolume } from "../../features/videoPlayer/videoPlayerSlice";
+import { useEffect } from "react";
+import eventEmitter from "./utils/eventEmitter";
+import { VideoEvent } from "./hooks/useVideoEventEmitter";
 
 export interface MoviePlayerBarProps {
     videoElement: HTMLVideoElement,
@@ -28,6 +31,16 @@ const MoviePlayerBar = ({ videoElement, src, player }: MoviePlayerBarProps) => {
     const selectedTrack = useAppSelector(selectSelectedTrack);
     const showQualityMenu = useAppSelector(selectShowQualityMenu);
     const autoResolution = useAppSelector(selectAutoResolution);
+
+    useEffect(() => {
+        function setPlayingState(){
+            dispatch(setPlaying(false));
+        }
+        const listener = eventEmitter.addListener(VideoEvent.Ended, setPlayingState);
+        return () => {
+            listener.remove();
+        }
+    })
 
     const dispatch = useAppDispatch();
 
