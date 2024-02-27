@@ -1,5 +1,5 @@
 import { Grid, Box, Paper, Button, Typography, Stack } from "@mui/material"
-import { selectPercent, selectTranscodePercent, setIsConectedToServer, setPercent, setTranscodePercent, setVideoInputValue } from "../../features/videoUpload/videoUploadSlice"
+import { selectPercent, selectTranscodePercent, selectUploadMode, setIsConectedToServer, setPercent, setTranscodePercent, setUploadMode, setVideoInputValue } from "../../features/videoUpload/videoUploadSlice"
 import LinearProgressWithLabel from "../LinearProgressWithLabel"
 import InputFileUpload from "../UploadButton"
 import { VideoList } from "../videoList/VideoList"
@@ -9,7 +9,7 @@ import { useEffect } from "react"
 import { useGetVideosQuery } from "../../features/videoList/videoListSlice"
 import { socket } from "../../sockets/socket"
 import { setVideo, setVideoMode } from "../../features/video/videoSlice"
-import VideoDetails from "./VideoDetails"
+import VideoDetails from "../videoDetails/VideoDetails"
 import { VideoResponse } from "../../features/videoList/videoListSlice.model"
 
 interface TranscodeResponse {
@@ -21,6 +21,7 @@ interface TranscodeResponse {
 const VideoStudio = () => {
     const percent = useAppSelector(selectPercent);
     const transcodePercentage = useAppSelector(selectTranscodePercent);
+    const uploadMode = useAppSelector(selectUploadMode);
     const dispatch = useAppDispatch();
 
 
@@ -45,6 +46,7 @@ const VideoStudio = () => {
 
         socket.on('videoUpdated', async (data: VideoResponse) => {
             await refetch();
+            dispatch(setUploadMode("inactive"));
             dispatch(setVideo(data));
             dispatch(setVideoMode("edit"));
         })
@@ -58,6 +60,7 @@ const VideoStudio = () => {
     const handleClearForm = () => {
         dispatch(setPercent(0));
         dispatch(setVideoInputValue(""));
+        dispatch(setUploadMode("inactive"));
     }
 
     return (
@@ -65,7 +68,43 @@ const VideoStudio = () => {
             <Grid item lg={8} xs={12}>
                 <Box sx={{ mb: 4 }}>
                     {/* Dash Player */}
-                    <Paper sx={{
+                    {
+                        uploadMode === "inactive"
+                            ? <Paper sx={{
+                                px: { lg: 4, xs: 0 },
+                                py: { lg: 2, xs: 0 },
+                                mb: 2,
+                                position: { xs: "fixed", md: "static" },
+                                top: 0,
+                                left: 0,
+                                right: 0,
+                                zIndex: { xs: "99999", md: "1" }
+                            }}>
+                                <Stack >
+                                    <DashPlayer></DashPlayer>
+                                    <VideoDetails></VideoDetails>
+                                </Stack>
+                            </Paper>
+                            : <Paper>
+                                <Box sx={{ px: 4, py: 2, mb: 2 }}>
+                                    <Typography variant="h6" component="h2" sx={{ mb: 2 }}>
+                                        Upload original video
+                                    </Typography>
+                                    <Stack sx={{ mt: 4 }} direction={"row"} spacing={2}>
+                                        <InputFileUpload />
+                                        <Button variant="outlined" onClick={() => handleClearForm()}>Cancel</Button>
+                                    </Stack>
+                                    <Box sx={{ width: '100%', mt: 4 }}>
+                                        <LinearProgressWithLabel value={percent} />
+                                    </Box>
+                                    <Box sx={{ py: 2, mb: 2 }}>
+                                        Dash Transcode progress
+                                        <LinearProgressWithLabel color="secondary" value={transcodePercentage ?? 0} />
+                                    </Box>
+                                </Box>
+                            </Paper>
+                    }
+                    {/* <Paper sx={{
                         px: { lg: 4, xs: 0 },
                         py: { lg: 2, xs: 0 },
                         mb: 2,
@@ -79,9 +118,9 @@ const VideoStudio = () => {
                             <DashPlayer></DashPlayer>
                             <VideoDetails></VideoDetails>
                         </Stack>
-                    </Paper>
+                    </Paper> */}
                     {/* <UploadSection></UploadSection> */}
-                    <Paper>
+                    {/* <Paper>
                         <Box sx={{ px: 4, py: 2, mb: 2 }}>
                             <Typography variant="h6" component="h2" sx={{ mb: 2 }}>
                                 Upload original video
@@ -98,7 +137,7 @@ const VideoStudio = () => {
                                 <LinearProgressWithLabel color="secondary" value={transcodePercentage ?? 0} />
                             </Box>
                         </Box>
-                    </Paper>
+                    </Paper> */}
                 </Box>
             </Grid>
             <Grid item lg={4} xs={12}>

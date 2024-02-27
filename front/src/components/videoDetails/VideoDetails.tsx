@@ -1,8 +1,9 @@
-import { Box, Stack, Typography, IconButton } from "@mui/material"
+import { Box, Stack, Typography, IconButton, Button } from "@mui/material"
 import EditIcon from '@mui/icons-material/Edit';
 import { selectVideoDescription, selectVideoName, selectVideoMode, setVideoMode } from "../../features/video/videoSlice";
 import { useAppDispatch, useAppSelector } from "../../app/hooks";
-import VideoDetailsForm from "../VideoDetailsForm";
+import VideoDetailsForm from "./VideoDetailsForm";
+import { setUploadMode } from "../../features/videoUpload/videoUploadSlice";
 
 const VideoDetails = () => {
     const videoName = useAppSelector(selectVideoName);
@@ -17,6 +18,10 @@ const VideoDetails = () => {
     const setEditMode = () => {
         dispatch(setVideoMode("edit"));
     }
+
+    const showUpload = () => {
+        dispatch(setUploadMode("active"))
+    }
     return (
         <Box sx={{ m: { xs: 2, lg: 0, color: "#757575" } }}>
             {
@@ -26,9 +31,13 @@ const VideoDetails = () => {
                             <Typography variant="subtitle1">
                                 {videoName}
                             </Typography>
-                            <IconButton onClick={() => { setEditMode() }}>
-                                <EditIcon></EditIcon>
-                            </IconButton>
+                            <Stack direction={"row"} spacing={2}>
+                                <IconButton onClick={() => { setEditMode() }}>
+                                    <EditIcon></EditIcon>
+                                </IconButton>
+                                <Button onClick={() => {showUpload()}} variant="contained">Add new</Button>
+                            </Stack>
+
                         </Stack>
                         <Box sx={{
                             my: 2,

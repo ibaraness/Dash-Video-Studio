@@ -13,7 +13,8 @@ const initialState: VideoUploadState = {
     isConnectedToServer: false,
     videoName:"",
     videoDescription:"",
-    file: null
+    file: null,
+    uploadMode: "inactive"
 }
 
 export const videoUploadSlice = createSlice({
@@ -50,6 +51,9 @@ export const videoUploadSlice = createSlice({
         setVideoFile: (state, action: PayloadAction<File | null>) => {
             state.file = action.payload;
         },
+        setUploadMode: (state, action: PayloadAction<"active" | "inactive">) => {
+            state.uploadMode = action.payload;
+        },
     }
 });
 
@@ -61,6 +65,7 @@ export const selectIsConnectedToServer = (state: RootState) => state.videoUpload
 export const selectVideoName = (state: RootState) => state.videoUpload.videoName;
 export const selectVideoDescription = (state: RootState) => state.videoUpload.videoDescription;
 export const selectVideoFile = (state: RootState) => state.videoUpload.file;
+export const selectUploadMode = (state: RootState) => state.videoUpload.uploadMode;
 
 export const {
     setPercent,
@@ -72,7 +77,8 @@ export const {
     setIsConectedToServer,
     setVideoName,
     setVideoDescription,
-    setVideoFile
+    setVideoFile,
+    setUploadMode
 } = videoUploadSlice.actions;
 
 export default videoUploadSlice.reducer;

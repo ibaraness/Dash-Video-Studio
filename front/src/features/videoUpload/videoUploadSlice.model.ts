@@ -16,4 +16,5 @@ export interface VideoUploadState {
     videoName: string;
     videoDescription: string;
     file: File | null;
+    uploadMode: "active" | "inactive"
 }

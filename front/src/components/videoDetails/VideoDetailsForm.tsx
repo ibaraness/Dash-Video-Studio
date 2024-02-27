@@ -1,9 +1,9 @@
 import { Stack, TextField, Button, Box, CircularProgress } from "@mui/material";
-import { selectVideoDescription, selectVideoId, selectVideoMode, selectVideoName, setVideoDescription, setVideoMode, setVideoName } from "../features/video/videoSlice";
-import { useAppDispatch, useAppSelector } from "../app/hooks";
-import { setMessage, setOpen, setSeverity } from "../features/notification/notificationSlice";
-import { useUpdateVideoMutation } from "../features/api/apiSlice";
-import { useGetVideosQuery } from "../features/videoList/videoListSlice";
+import { selectVideoDescription, selectVideoId, selectVideoMode, selectVideoName, setVideoDescription, setVideoMode, setVideoName } from "../../features/video/videoSlice";
+import { useAppDispatch, useAppSelector } from "../../app/hooks";
+import { setMessage, setOpen, setSeverity } from "../../features/notification/notificationSlice";
+import { useUpdateVideoMutation } from "../../features/api/apiSlice";
+import { useGetVideosQuery } from "../../features/videoList/videoListSlice";
 
 const VideoDetailsForm = () => {
 
