@@ -19,10 +19,19 @@ export const apiSlice = createApi({
                 body: videoChunkInfo
             }),
         }),
+        updateVideo: builder.mutation<undefined, VideoUpdateDetails>({
+            query: ({ id, name, description }) => ({
+                url: `/video/${id}`,
+                method: 'PUT',
+                body: { name, description },
+                invalidatesTags: ['VideoList']
+            })
+        })
     })
 });
 
 export const { useMultiPartUploaderMutation } = apiSlice;
+export const { useUpdateVideoMutation } = apiSlice;
 
 export interface VideoChunkInfo {
     chunkNumber: string;
@@ -30,4 +39,10 @@ export interface VideoChunkInfo {
     originalname: string;
     uploadId: string;
     file: Blob
+}
+
+export interface VideoUpdateDetails {
+    id: number | string;
+    name: string;
+    description: string;
 }

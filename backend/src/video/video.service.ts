@@ -51,8 +51,9 @@ export class VideoService {
             this.logger.error("Error in getVideoBasicInfo", e, VideoService.name);
             throw Error("Unknown problem with getting Video Metadata")
         }
-
     }
+
+
 
     async getVideoInfo(videoPath: string): Promise<ffmpeg.FfprobeData> {
         const metadata = await ffprobeAsync(videoPath);
@@ -189,6 +190,8 @@ export class VideoService {
             metadata: JSON.parse(rest.metadata)
         }
         await this.cacheManager.set(`getById${id}`, JSON.stringify(videoPublic));
+        await this.cacheManager.set(String(id), JSON.stringify(video));
+        await this.cacheManager.del("allVideos");
         return videoPublic;
     }
 
@@ -235,6 +238,7 @@ export class VideoService {
         }
 
         const saved = await this.videoRepository.save(video);
+        await this.cacheManager.del("allVideos");
         await this.cacheManager.set(String(id), JSON.stringify(saved));
         return saved;
     }
@@ -247,6 +251,20 @@ export class VideoService {
         video.dashFilePath = dashFilePath;
         video.fallbackVideoPath = fallbackFile;
         const saved = await this.videoRepository.save(video);
+        await this.cacheManager.del("allVideos");
+        await this.cacheManager.set(String(id), JSON.stringify(saved));
+        return saved;
+    }
+
+    async updateNameAndDescription(id: number, name: string, description: string) {
+        const video = await this.videoRepository.findOne({ where: { id } });
+        if (!video) {
+            throw new NotFoundException(`Video with ID ${id} not found`);
+        }
+        video.name = name;
+        video.description = description;
+        const saved = await this.videoRepository.save(video);
+        await this.cacheManager.del("allVideos");
         await this.cacheManager.set(String(id), JSON.stringify(saved));
         return saved;
     }

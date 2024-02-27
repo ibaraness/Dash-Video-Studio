@@ -45,7 +45,18 @@ export class TranscodeService {
         const resolutionScalingFactor  = isLandscape ? height : width;
 
         // Remove resolutions that are greater than the video's resolution
-        resolutionsAndBitrates = resolutionsAndBitrates.filter(size => size[0] < resolutionScalingFactor + 1)
+
+        // Check if video size is in the list (is the video has a 16/9 ratio?)
+        const isOriginalInList = resolutionsAndBitrates.find(size => size[0] === resolutionScalingFactor);
+        if(isOriginalInList){
+            // Get all the resolution under the video's current resolution
+            resolutionsAndBitrates = resolutionsAndBitrates.filter(size => size[0] < resolutionScalingFactor + 1)
+        } else {
+            // If the video's resolution is not on the list, add the first larger resolution to the list
+            const partial = resolutionsAndBitrates.filter(size => size[0] < resolutionScalingFactor);
+            resolutionsAndBitrates = resolutionsAndBitrates.filter((size, index) => index < partial.length);
+        }
+        
 
         // Set fallback video size, for traditional streaming for browsers which do not support dash
         // [resolution, bitrate]

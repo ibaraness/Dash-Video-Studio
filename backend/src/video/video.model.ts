@@ -16,6 +16,14 @@ export class VideoUploadDTO {
     uploadId: string
 }
 
+export class VideoUpdateDTO {
+    @IsString()
+    name: string;
+    
+    @IsString()
+    description: string;
+}
+
 export class VideoUploadJob extends VideoUploadDTO {
     file: Express.Multer.File;
 }

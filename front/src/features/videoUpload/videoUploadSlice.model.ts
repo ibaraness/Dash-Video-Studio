@@ -13,4 +13,7 @@ export interface VideoUploadState {
     videoInputValue: string;
     uploadedStatus: UploadedStatus;
     isConnectedToServer: boolean;
+    videoName: string;
+    videoDescription: string;
+    file: File | null;
 }

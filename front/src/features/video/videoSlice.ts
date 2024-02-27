@@ -5,11 +5,14 @@ import { VideoMetadata, VideoResponse } from "../videoList/videoListSlice.model"
 
 interface VideoState {
     videoId: number;
+    videoName: string;
+    videoDescription: string | null;
     metadata: VideoMetadata;
     selectedSize: number;
     dashURL: string;
     fallbackURL: string;
     currentTime: number;
+    mode: "display" | "edit" | "loading"
 }
 
 const initialMetadata = {
@@ -26,11 +29,14 @@ const initialMetadata = {
 
 const initialState: VideoState = {
     videoId: 0,
+    videoName: "",
+    videoDescription: null,
     metadata: initialMetadata,
     selectedSize:0,
     dashURL:"",
     fallbackURL:"",
-    currentTime:0
+    currentTime:0,
+    mode: "display"
 }
 
 export const videoSlice = createSlice({
@@ -60,6 +66,8 @@ export const videoSlice = createSlice({
             state.metadata = action.payload.metadata;
             state.dashURL = action.payload.dash;
             state.fallbackURL = action.payload.fallbackVideoPath;
+            state.videoName = action.payload.name;
+            state.videoDescription = action.payload.description || null;
         },
         clearVideoData: (state) => {
             state.videoId = 0;
@@ -68,7 +76,19 @@ export const videoSlice = createSlice({
             state.fallbackURL = "";
             state.selectedSize = 0;
             state.currentTime = 0;
-        }
+            state.mode = "display";
+            state.videoName = "";
+            state.videoDescription = null;
+        },
+        setVideoName: (state, action: PayloadAction<string>) => {
+            state.videoName = action.payload;
+        },
+        setVideoDescription: (state, action: PayloadAction<string>) => {
+            state.videoDescription = action.payload;
+        },
+        setVideoMode: (state, action: PayloadAction<"display" | "edit" | "loading">) => {
+            state.mode = action.payload;
+        },
     }
 });
 
@@ -78,6 +98,9 @@ export const selectSelectedVideoSize = (state: RootState) => state.video.selecte
 export const selectCurrentTime = (state: RootState) => state.video.currentTime;
 export const selectDashURL = (state: RootState) => state.video.dashURL;
 export const selectFallbackURL = (state: RootState) => state.video.fallbackURL;
+export const selectVideoName = (state: RootState) => state.video.videoName;
+export const selectVideoDescription = (state: RootState) => state.video.videoDescription;
+export const selectVideoMode = (state: RootState) => state.video.mode;
 
 export const { 
     setVideoId, 
@@ -88,6 +111,9 @@ export const {
     setFallbackURL,
     clearVideoData, 
     setVideo,
+    setVideoName,
+    setVideoDescription,
+    setVideoMode
 } = videoSlice.actions;
 
 export default videoSlice.reducer;

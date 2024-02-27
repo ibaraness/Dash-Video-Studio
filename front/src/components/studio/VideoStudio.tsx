@@ -8,7 +8,9 @@ import DashPlayer from "../DashPlayer/DashPlayer"
 import { useEffect } from "react"
 import { useGetVideosQuery } from "../../features/videoList/videoListSlice"
 import { socket } from "../../sockets/socket"
-import { setVideo } from "../../features/video/videoSlice"
+import { setVideo, setVideoMode } from "../../features/video/videoSlice"
+import VideoDetails from "./VideoDetails"
+import { VideoResponse } from "../../features/videoList/videoListSlice.model"
 
 interface TranscodeResponse {
     status: string;
@@ -21,7 +23,7 @@ const VideoStudio = () => {
     const transcodePercentage = useAppSelector(selectTranscodePercent);
     const dispatch = useAppDispatch();
 
-    
+
 
     const { refetch } = useGetVideosQuery(undefined);
 
@@ -41,9 +43,10 @@ const VideoStudio = () => {
             dispatch(setTranscodePercent(+value.percentage));
         })
 
-        socket.on('videoUpdated', async (data) => {
+        socket.on('videoUpdated', async (data: VideoResponse) => {
             await refetch();
             dispatch(setVideo(data));
+            dispatch(setVideoMode("edit"));
         })
         return () => {
             socket.off('connect', onConnect);
@@ -62,20 +65,22 @@ const VideoStudio = () => {
             <Grid item lg={8} xs={12}>
                 <Box sx={{ mb: 4 }}>
                     {/* Dash Player */}
-                    <Paper>
-                        <Box sx={{ 
-                            px: {lg:4, xs:0},
-                             py: {lg:2, xs:0}, 
-                             mb: 2,
-                             position: {xs:"fixed", md:"static"},
-                             top: 0,
-                             left:0,
-                             right:0,
-                             zIndex: {xs:"99999", md:"1"} 
-                             }}>
+                    <Paper sx={{
+                        px: { lg: 4, xs: 0 },
+                        py: { lg: 2, xs: 0 },
+                        mb: 2,
+                        position: { xs: "fixed", md: "static" },
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        zIndex: { xs: "99999", md: "1" }
+                    }}>
+                        <Stack >
                             <DashPlayer></DashPlayer>
-                        </Box>
+                            <VideoDetails></VideoDetails>
+                        </Stack>
                     </Paper>
+                    {/* <UploadSection></UploadSection> */}
                     <Paper>
                         <Box sx={{ px: 4, py: 2, mb: 2 }}>
                             <Typography variant="h6" component="h2" sx={{ mb: 2 }}>
@@ -88,20 +93,12 @@ const VideoStudio = () => {
                             <Box sx={{ width: '100%', mt: 4 }}>
                                 <LinearProgressWithLabel value={percent} />
                             </Box>
-                            <Box sx={{  py: 2, mb: 2 }}>
+                            <Box sx={{ py: 2, mb: 2 }}>
                                 Dash Transcode progress
                                 <LinearProgressWithLabel color="secondary" value={transcodePercentage ?? 0} />
                             </Box>
                         </Box>
                     </Paper>
-
-                    {/* <Paper>
-                        <Box sx={{ px: 4, py: 2, mb: 2 }}>
-                            Dash Transcode progress
-                            <LinearProgressWithLabel color="secondary" value={transcodePercentage ?? 0} />
-                        </Box>
-                    </Paper> */}
-
                 </Box>
             </Grid>
             <Grid item lg={4} xs={12}>

@@ -3,12 +3,14 @@ import videoUploadSlice from '../features/videoUpload/videoUploadSlice'
 import videoSlice from '../features/video/videoSlice';
 import { apiSlice } from '../features/api/apiSlice';
 import videoPlayerSlice from '../features/videoPlayer/videoPlayerSlice';
+import notificationSlice from '../features/notification/notificationSlice';
 
 export const store = configureStore({
     reducer: {
         videoUpload:videoUploadSlice,
         video: videoSlice,
         videoPlayer: videoPlayerSlice,
+        notification: notificationSlice,
         [apiSlice.reducerPath]: apiSlice.reducer
     },
     middleware: getDefaultMiddleware =>

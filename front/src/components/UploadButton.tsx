@@ -3,7 +3,7 @@ import Button from '@mui/material/Button';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import { useAppDispatch, useAppSelector } from '../app/hooks';
 import { multipartUpload } from '../services/MultipartUpload';
-import { selectVideoInputValue, setPercent, setVideoInputValue, setVideoUploadStatus } from '../features/videoUpload/videoUploadSlice';
+import { selectVideoInputValue, setPercent, setVideoInputValue, setVideoName, setVideoUploadStatus } from '../features/videoUpload/videoUploadSlice';
 import { setVideoId } from '../features/video/videoSlice';
 import { UploadedStatus } from '../features/videoUpload/videoUploadSlice.model';
 import { ProgressPayload } from '../services/MultipartUpload.model';
@@ -33,10 +33,18 @@ const InputFileUpload = () => {
 
   // const [uploadFile, { isLoading, isError, error }] = useMultiPartUploaderMutation();
 
+  function removeExtension(filename: string) {
+    return (
+      filename.substring(0, filename.lastIndexOf('.')) || filename
+    );
+  }
+
   const handleUpload = (event: EventTarget & HTMLInputElement) => {
     dispatch(setVideoInputValue(event.value));
     const file = event.files && event.files[0];
+    
     if (file) {
+      dispatch(setVideoName(removeExtension(file.name)));
       dispatch(setPercent(0));
       multipartUpload(file, (event) => {
         dispatch(setPercent(event.percent));
@@ -44,10 +52,8 @@ const InputFileUpload = () => {
       (event) => {
         dispatch(setVideoId(event.id))
         dispatch(setVideoUploadStatus(UploadedStatus.Complete));
-        console.log("response", event);
       })
     }
-    // console.log(file);
   }
   return (
     <Button component="label" variant="contained" startIcon={<CloudUploadIcon />}>

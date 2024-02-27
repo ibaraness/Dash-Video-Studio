@@ -5,7 +5,8 @@ import {
     Header, Param,
     Post, Res, UploadedFile,
     UseInterceptors,
-    Headers
+    Headers,
+    Put
 } from "@nestjs/common";
 import { FileInterceptor } from "@nestjs/platform-express";
 import { VideoService } from "./video.service";
@@ -14,7 +15,7 @@ import { from, map, tap } from "rxjs";
 import { Response } from 'express';
 import { InjectQueue } from "@nestjs/bull";
 import { Queue } from "bull";
-import { UplodedVideoDataCreator, VideoProcess, VideoUploadDTO } from './video.model';
+import { UplodedVideoDataCreator, VideoProcess, VideoUpdateDTO, VideoUploadDTO } from './video.model';
 import { ChunkSavedStatus } from "./video-upload.model";
 import fs = require("fs");
 import * as path from "path";
@@ -43,39 +44,6 @@ export class VideoController {
         return this.videoService.getAll();
     }
 
-    @Get('test_path')
-    async testPath() {
-        const { spawn } = require('child_process');
-
-        // Spawn a new process to run the 'ls' command
-        // const ls = spawn('ls', ['-l', '-a']);
-
-        const ls = spawn('pwd');
-
-        // Listen for output from the process
-        ls.stdout.on('data', (data) => {
-            console.log(`stdout: ${data}`);
-        });
-
-        // Listen for errors
-        ls.stderr.on('data', (data) => {
-            console.error(`stderr: ${data}`);
-        });
-
-        // Listen for the process to exit
-        ls.on('close', (code) => {
-            console.log(`child process exited with code ${code}`);
-        });
-    }
-
-    @Get('/member/:id')
-    async getMemberPath(@Param('id') videoId: number) {
-        // get a list of all the files in the folder
-        const { dashFilePath } = await this.videoService.loadvideo(videoId);
-        const dashFolder = path.dirname(dashFilePath);
-        const files = fs.readdirSync(dashFolder);
-        return { "data": files }
-    }
 
     @Get('stream/:id/:resolution?')
     @Header('Accept-Ranges', 'bytes')
@@ -92,7 +60,6 @@ export class VideoController {
     @Get('/info/:id')
     async videoInfo(@Param('id') videoId: number) {
         const { id, metadata, ...others } = await this.videoService.loadvideo(videoId);
-        console.log("others", others);
         return { id, metadata: JSON.parse(metadata) };
     }
 
@@ -103,15 +70,41 @@ export class VideoController {
         return metadata;
     }
 
+    @Get('/:id')
+    async getSingleVideo(@Param('id') videoId: number) {
+        const video = await this.videoService.loadvideo(videoId);
+        const { dashFilePath, thumbnail, fallbackVideoPath, ...rest } = video;
+        return {
+            ...rest,
+            fallbackVideoPath: this.videoService.getPublicURL(fallbackVideoPath),
+            thumbnail: this.videoService.getPublicURL(thumbnail),
+            dash: this.videoService.getPublicURL(dashFilePath),
+            metadata: JSON.parse(rest.metadata)
+        }
+    }
+
+    // Upadte video title, description and tags
+    @Put('/:id')
+    async updateVideo(@Param('id') videoId: number, @Body() {name, description}: VideoUpdateDTO) {
+        const video = await this.videoService.updateNameAndDescription(videoId, name, description);
+        const { dashFilePath, thumbnail, fallbackVideoPath, ...rest } = video;
+        return {
+            ...rest,
+            fallbackVideoPath: this.videoService.getPublicURL(fallbackVideoPath),
+            thumbnail: this.videoService.getPublicURL(thumbnail),
+            dash: this.videoService.getPublicURL(dashFilePath),
+            metadata: JSON.parse(rest.metadata)
+        }
+    }
+
     @Post('/create-bucket')
     async createBucket(@Body() { name }: { name: string }) {
-        console.log("You tries to create a bucket", name);
         if (name && name.length > 2) {
             return this.storageService.createBucket(name);
         }
         return { name };
     }
-
+    
     @Post()
     @UseInterceptors(FileInterceptor('file'))
     async uploadAndTranscodeDashVideo(
@@ -121,7 +114,6 @@ export class VideoController {
         return from(this.videoUploadService.handleSavingChunk(file.buffer, body)).pipe(
             tap(({ message, status, videoPath }) => {
                 if (status === ChunkSavedStatus.Done) {
-                    console.log("videoPath", videoPath)
                     this.videoQueue.add(
                         VideoProcess.ProcessUploadedVideo,
                         UplodedVideoDataCreator(message, status, videoPath)

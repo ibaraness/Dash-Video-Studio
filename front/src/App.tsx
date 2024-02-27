@@ -3,6 +3,7 @@ import { blue } from '@mui/material/colors';
 import MenuIcon from '@mui/icons-material/Menu';
 import React from 'react';
 import VideoStudio from './components/studio/VideoStudio';
+import NotificationSnack from './components/notifications/NotificationSnack';
 
 function App() {
 
@@ -36,6 +37,7 @@ function App() {
         }}>
         <VideoStudio></VideoStudio>
       </Container>
+      <NotificationSnack></NotificationSnack>
     </React.Fragment>
   )
 }
