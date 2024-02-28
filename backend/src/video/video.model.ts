@@ -1,5 +1,5 @@
 import { ChunkSavedStatus } from "./video-upload.model";
-import { IsInt, IsString, IsNumberString, MinLength } from 'class-validator';
+import { IsInt, IsString, IsNumberString, MinLength, MaxLength } from 'class-validator';
 
 export class VideoUploadDTO {
     @IsNumberString()
@@ -18,6 +18,8 @@ export class VideoUploadDTO {
 
 export class VideoUpdateDTO {
     @IsString()
+    @MaxLength(70)
+    @MinLength(1)
     name: string;
     
     @IsString()

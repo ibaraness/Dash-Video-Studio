@@ -5,12 +5,14 @@ import InputFileUpload from "../UploadButton"
 import { VideoList } from "../videoList/VideoList"
 import { useAppDispatch, useAppSelector } from "../../app/hooks"
 import DashPlayer from "../DashPlayer/DashPlayer"
-import { useEffect } from "react"
+import { useEffect, useRef } from "react"
 import { useGetVideosQuery } from "../../features/videoList/videoListSlice"
 import { socket } from "../../sockets/socket"
 import { setVideo, setVideoMode } from "../../features/video/videoSlice"
 import VideoDetails from "../videoDetails/VideoDetails"
 import { VideoResponse } from "../../features/videoList/videoListSlice.model"
+import eventEmitter from "../DashPlayer/utils/eventEmitter"
+import { selectIsMobile, selectTopOffset, setTopOffset } from "../../features/ui/uiSlice"
 
 interface TranscodeResponse {
     status: string;
@@ -22,6 +24,9 @@ const VideoStudio = () => {
     const percent = useAppSelector(selectPercent);
     const transcodePercentage = useAppSelector(selectTranscodePercent);
     const uploadMode = useAppSelector(selectUploadMode);
+    const playerContainer = useRef<HTMLDivElement>(null);
+    const topOffset = useAppSelector(selectTopOffset);
+    const isMobile = useAppSelector(selectIsMobile);
     const dispatch = useAppDispatch();
 
 
@@ -63,10 +68,32 @@ const VideoStudio = () => {
         dispatch(setUploadMode("inactive"));
     }
 
+    useEffect(() => {
+        if (playerContainer.current) {
+            dispatch(setTopOffset(playerContainer.current.offsetHeight));
+        }
+        function handleResize() {
+            if (playerContainer.current) {
+                dispatch(setTopOffset(playerContainer.current.offsetHeight));
+            }
+        }
+        const listener = eventEmitter.addListener("resize", handleResize);
+        return () => {
+            listener.remove();
+        }
+    }, [playerContainer])
+
     return (
-        <Grid container>
+        <Grid sx={{pt:`${isMobile && topOffset + 'px' || 0}`}} container>
             <Grid item lg={8} xs={12}>
-                <Box sx={{ mb: 4 }}>
+                <Box ref={playerContainer} sx={{
+                    mb: 4,
+                    position: { xs: "fixed", md: "static" },
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    zIndex: { xs: "99999", md: "1" }
+                }} component={"div"}>
                     {/* Dash Player */}
                     {
                         uploadMode === "inactive"
@@ -74,11 +101,7 @@ const VideoStudio = () => {
                                 px: { lg: 4, xs: 0 },
                                 py: { lg: 2, xs: 0 },
                                 mb: 2,
-                                position: { xs: "fixed", md: "static" },
-                                top: 0,
-                                left: 0,
-                                right: 0,
-                                zIndex: { xs: "99999", md: "1" }
+
                             }}>
                                 <Stack >
                                     <DashPlayer></DashPlayer>

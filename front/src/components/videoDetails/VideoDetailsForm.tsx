@@ -4,6 +4,7 @@ import { useAppDispatch, useAppSelector } from "../../app/hooks";
 import { setMessage, setOpen, setSeverity } from "../../features/notification/notificationSlice";
 import { useUpdateVideoMutation } from "../../features/api/apiSlice";
 import { useGetVideosQuery } from "../../features/videoList/videoListSlice";
+import { isFetchBaseQueryError } from "../../services/helpers";
 
 const VideoDetailsForm = () => {
 
@@ -29,18 +30,23 @@ const VideoDetailsForm = () => {
             dispatch(setVideoMode("loading"));
             await updateVideo({ id: videoId, name: videoName, description: videoDescription || "" }).unwrap();
             if (isError) {
+                dispatch(setVideoMode("edit"));
+                console.error("error", error);
                 failureNotification()
                 return;
             }
             await refetch();
             dispatch(setVideoMode("display"));
             successNotification();
-        } catch (e) {
-            console.log("error", e);
-            failureNotification();
+        } catch (err) {
+            if(isFetchBaseQueryError(err)){
+                const data = err.data as {message: string[]}
+                failureNotification(data.message[0] || "Unknown Error!");
+            } else {
+                failureNotification("Unknown Error!");
+            } 
             dispatch(setVideoMode("edit"));
         }
-
     }
 
     const successNotification = () => {
@@ -49,8 +55,8 @@ const VideoDetailsForm = () => {
         dispatch(setOpen(true));
     }
 
-    const failureNotification = () => {
-        dispatch(setMessage(error && error.toString() || "Something went wrong!"));
+    const failureNotification = (message = "Something went wrong!") => {
+        dispatch(setMessage(message));
         dispatch(setSeverity("error"));
         dispatch(setOpen(true));
     }
@@ -66,13 +72,11 @@ const VideoDetailsForm = () => {
                     <CircularProgress />
                 </Box>
             }
-
-
             <TextField
                 value={videoName}
                 disabled={mode === "loading"}
                 onChange={(event) => handleVideoName(event.target.value)}
-                sx={{ mb: 4 }} label="Title" variant="standard" />
+                sx={{ mb: 4, color: "#757575" }} label="Title" variant="standard" />
             <TextField
                 sx={{ mb: 4 }}
                 label="Description"
@@ -82,29 +86,9 @@ const VideoDetailsForm = () => {
                 value={videoDescription || ""}
                 onChange={(event) => handleVideoDescription(event.target.value)}
             />
-            {/* Tags */}
-            {/* <Grid container sx={{ mb: 4 }} spacing={2}>
-                    <Grid item xs={6}>
-                        <TextField sx={{ width: "100%" }} label="Tag" variant="standard" />
-                    </Grid>
-                    <Grid item xs={4}>
-                        <Button disabled={mode === "loading"} variant="contained">Add</Button>
-                    </Grid>
-                </Grid>
-
-                <Box sx={{ mb: 4 }}>
-                    <Chip sx={{ mr: 1 }} label="Deletable" onDelete={handleDelete} />
-                    <Chip label="Deletable" onDelete={handleDelete} />
-                    <Chip label="Deletable" onDelete={handleDelete} />
-                    <Chip label="Deletable" onDelete={handleDelete} />
-                    <Chip label="Deletable" onDelete={handleDelete} />
-                    <Chip label="Deletable" onDelete={handleDelete} />
-                    <Chip label="Deletable" onDelete={handleDelete} />
-                    <Chip label="Deletable" onDelete={handleDelete} />
-                </Box> */}
             <Stack direction={"row"} spacing={2}>
-                <Button disabled={mode === "loading"} variant="contained" onClick={() => { saveChanges() }}>Update</Button>
-                <Button disabled={mode === "loading"} variant="outlined" onClick={() => handleCancel()}>Cancel</Button>
+                <Button sx={{ borderRadius: 2}} size="small" disabled={mode === "loading"} variant="contained" onClick={() => { saveChanges() }}>Update</Button>
+                <Button sx={{ borderRadius: 2}} size="small" disabled={mode === "loading"} variant="outlined" onClick={() => handleCancel()}>Cancel</Button>
             </Stack>
 
         </Stack>

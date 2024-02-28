@@ -61,9 +61,9 @@ const VideoPlayerFrame = ({ mpdSrc, videoElement, children }: VideoPlayerFramePr
             updateFrameAspectRatio(videoElement);
         }
 
-        window.addEventListener("resize", handleResize);
+        const listener = eventEmitter.addListener("resize", handleResize);
         return () => {
-            window.removeEventListener("resize", handleResize);
+            listener.remove();
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     },[mpdSrc]);
