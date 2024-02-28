@@ -8,6 +8,7 @@ import { getBreakingpoint } from './services/helpers';
 import { useAppDispatch } from './app/hooks';
 import { setActiveBreakpoint, setIsMobile } from './features/ui/uiSlice';
 import eventEmitter from './components/DashPlayer/utils/eventEmitter';
+import ConfirmDialog from './components/confirm/ConfirmDialog';
 
 
 
@@ -61,6 +62,7 @@ function App() {
         <VideoStudio></VideoStudio>
       </Container>
       <NotificationSnack></NotificationSnack>
+      <ConfirmDialog></ConfirmDialog>
     </React.Fragment>
   )
 }

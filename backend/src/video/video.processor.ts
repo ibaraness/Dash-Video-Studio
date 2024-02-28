@@ -50,6 +50,9 @@ export class VideoProcessor {
             // Save storage location on DB
             const { id } = await this.videoService.saveVideo(videoPath, metadata, url)
             this.logger.log("Video saved to database", VideoProcessor.name);
+
+            // Save bucket name and file Id to DB
+            await this.videoService.updateBucketData(id, VideoBuckets.Dash, uniqueFolderName);
             
             // Send the video to transcoding process
             const { width, height } = metadata;

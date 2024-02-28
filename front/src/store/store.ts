@@ -5,6 +5,7 @@ import { apiSlice } from '../features/api/apiSlice';
 import videoPlayerSlice from '../features/videoPlayer/videoPlayerSlice';
 import notificationSlice from '../features/notification/notificationSlice';
 import uiSlice from '../features/ui/uiSlice';
+import confirmSlice from '../features/confirm/confirmSlice';
 
 export const store = configureStore({
     reducer: {
@@ -12,6 +13,7 @@ export const store = configureStore({
         video: videoSlice,
         videoPlayer: videoPlayerSlice,
         notification: notificationSlice,
+        confirm: confirmSlice,
         ui: uiSlice,
         [apiSlice.reducerPath]: apiSlice.reducer
     },

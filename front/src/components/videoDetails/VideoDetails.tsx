@@ -1,13 +1,18 @@
-import { Box, Stack, Typography, IconButton, Button } from "@mui/material"
+import { Box, Stack, Typography, Button } from "@mui/material";
 import EditIcon from '@mui/icons-material/Edit';
-import { selectVideoDescription, selectVideoName, selectVideoMode, setVideoMode, selectVideoId } from "../../features/video/videoSlice";
+import { selectVideoDescription, selectVideoName, selectVideoMode, setVideoMode, selectVideoId, clearVideoData } from "../../features/video/videoSlice";
 import { useAppDispatch, useAppSelector } from "../../app/hooks";
 import VideoDetailsForm from "./VideoDetailsForm";
 import { setUploadMode } from "../../features/videoUpload/videoUploadSlice";
-
-import Fab from '@mui/material/Fab';
 import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
+import { setConfirmAction, setConfirmCallId, setConfirmMessage, setConfirmOpen, setConfirmTitle } from "../../features/confirm/confirmSlice";
+import { useEffect } from "react";
+import eventEmitter from "../DashPlayer/utils/eventEmitter";
+import { ConfirmResponse } from "../confirm/ConfirmDialog";
+import { useDeleteVideoMutation } from "../../features/api/apiSlice";
+import { setMessage, setOpen, setSeverity } from "../../features/notification/notificationSlice";
+import { useGetVideosQuery } from "../../features/videoList/videoListSlice";
 
 const VideoDetails = () => {
     const videoName = useAppSelector(selectVideoName);
@@ -16,6 +21,48 @@ const VideoDetails = () => {
     const mode = useAppSelector(selectVideoMode);
     const dispatch = useAppDispatch();
 
+    const [deleteVideo, {isError, error}] = useDeleteVideoMutation(undefined);
+    const { refetch } = useGetVideosQuery(undefined);
+
+
+    useEffect(() => {
+        async function deleteConfirmation({ action, id, approved }: ConfirmResponse) {
+            try {
+                if (approved && action === 'delete') {
+                    await deleteVideo(id).unwrap();
+                    if (isError) {
+                        console.error("error", error);
+                        failureNotification();
+                        return;
+                    }
+                    successNotification();
+                    dispatch(clearVideoData());
+                    await refetch();
+                }
+            } catch (err) {
+                console.error(err);
+                failureNotification();
+            }
+
+        }
+        const listener = eventEmitter.addListener('confirmAnswer', deleteConfirmation);
+        return () => {
+            listener.remove();
+        }
+    })
+
+    const successNotification = () => {
+        dispatch(setMessage("Successfully deleted video!"));
+        dispatch(setSeverity("success"));
+        dispatch(setOpen(true));
+    }
+
+    const failureNotification = (message = "Something went wrong!") => {
+        dispatch(setMessage(message));
+        dispatch(setSeverity("error"));
+        dispatch(setOpen(true));
+    }
+
     const setEditMode = () => {
         dispatch(setVideoMode("edit"));
     }
@@ -23,6 +70,15 @@ const VideoDetails = () => {
     const showUpload = () => {
         dispatch(setUploadMode("active"))
     }
+
+    const handleDelete = () => {
+        dispatch(setConfirmCallId(videoId));
+        dispatch(setConfirmAction("delete"));
+        dispatch(setConfirmTitle("Are you sure want to delete this video?"));
+        dispatch(setConfirmMessage("This operation is irreversible, all of the video's data will be lost! "));
+        dispatch(setConfirmOpen(true));
+    }
+
     return (
         <Box sx={{ mx: { xs: 2, lg: 0, color: "#757575" } }}>
             {
@@ -68,7 +124,7 @@ const VideoDetails = () => {
                                         disabled={!(!!videoId)}
                                         sx={{ borderRadius: 2 }}
                                         startIcon={<DeleteIcon></DeleteIcon>}
-                                        onClick={() => { }}
+                                        onClick={() => { handleDelete() }}
                                         variant="outlined">Delete</Button>
                                 </Stack>
 

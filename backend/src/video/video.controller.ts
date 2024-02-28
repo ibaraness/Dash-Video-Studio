@@ -6,7 +6,10 @@ import {
     Post, Res, UploadedFile,
     UseInterceptors,
     Headers,
-    Put
+    Put,
+    Delete,
+    HttpException,
+    HttpStatus
 } from "@nestjs/common";
 import { FileInterceptor } from "@nestjs/platform-express";
 import { VideoService } from "./video.service";
@@ -85,7 +88,7 @@ export class VideoController {
 
     // Upadte video title, description and tags
     @Put('/:id')
-    async updateVideo(@Param('id') videoId: number, @Body() {name, description}: VideoUpdateDTO) {
+    async updateVideo(@Param('id') videoId: number, @Body() { name, description }: VideoUpdateDTO) {
         const video = await this.videoService.updateNameAndDescription(videoId, name, description);
         const { dashFilePath, thumbnail, fallbackVideoPath, ...rest } = video;
         return {
@@ -97,6 +100,25 @@ export class VideoController {
         }
     }
 
+    @Delete('/:id')
+    async deleteVideo(@Param('id') videoId: number) {
+        try {
+            // Getting the file from database
+            const video = await this.videoService.loadvideo(videoId);
+
+            // Deleting it from Min.io
+            await this.storageService.deleteFiles(video.bucket, video.fileId);
+
+            // Deleting it from db
+            const deletedVideo = await this.videoService.deleteVideo(videoId);
+            console.log(deletedVideo);
+            return { deletedVideo };
+        } catch (err) {
+            const message = err.message || "something went wrong!";
+            throw new HttpException(message, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
     @Post('/create-bucket')
     async createBucket(@Body() { name }: { name: string }) {
         if (name && name.length > 2) {
@@ -104,7 +126,7 @@ export class VideoController {
         }
         return { name };
     }
-    
+
     @Post()
     @UseInterceptors(FileInterceptor('file'))
     async uploadAndTranscodeDashVideo(

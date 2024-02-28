@@ -92,7 +92,7 @@ const VideoStudio = () => {
                     top: 0,
                     left: 0,
                     right: 0,
-                    zIndex: { xs: "99999", md: "1" }
+                    zIndex: { xs: "9", md: "1" }
                 }} component={"div"}>
                     {/* Dash Player */}
                     {

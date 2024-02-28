@@ -68,7 +68,32 @@ export class StorageService {
     } catch (e) {
       this.logger.error("Error uploading file", e, "StorageService");
     }
+  }
 
+  async deleteFiles(bucket: string, folderName: string) {
+    var objectsList = []
+
+    // List all object paths in bucket my-bucketname.
+    var objectsStream = minioClient.listObjects(bucket, folderName, true)
+
+    objectsStream.on('data', function (obj) {
+      objectsList.push(obj.name)
+    })
+
+    objectsStream.on('error', (e) => {
+      this.logger.error("Error delete files", JSON.stringify(e), StorageService.name);
+    })
+
+    objectsStream.on('end',  () => {
+      minioClient.removeObjects(bucket, objectsList,  (e) => {
+        if (e) {
+          this.logger.error("Unable to remove Objects", JSON.stringify(e), StorageService.name);
+          throw new Error("Unable to remove Objects");
+          return;
+        }
+        this.logger.log('Removed the objects successfully', StorageService.name);
+      })
+    })
   }
 
   async uploadFolder(dashBucket: string, folderPath: string, outputFolderName?: string): Promise<{ url: string }> {

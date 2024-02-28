@@ -50,6 +50,9 @@ const ActualDashPlayer = () => {
     useEffect(() => {
         const loadDashVideo = async () => {
             try {
+                if(!player.getMediaElement()){
+                    await player.attach(videoElement);
+                }
                 // Load MPD stream manifest file of video
                 await player.load(mpdSrc);
                 dispatch(setLoaded(true));
@@ -60,6 +63,11 @@ const ActualDashPlayer = () => {
             }
         }
 
+        const unloadVideo = async () => {
+            await player.unload();
+            await player.attach(videoElement);
+        }
+
         // updateFrameAspectRatio(videoElement);
         dispatch(unloadAll());
         dispatch(setSelectedTrack({ id: -1, title: "auto" }));
@@ -68,6 +76,9 @@ const ActualDashPlayer = () => {
             // videoElement.setAttribute("controls", "true");
             videoElement.setAttribute("autoplay", "true");
             loadDashVideo();
+        } 
+        else if(!mpdSrc && player) {
+            unloadVideo();
         }
     }, [mpdSrc, player, videoElement, dispatch]);
 

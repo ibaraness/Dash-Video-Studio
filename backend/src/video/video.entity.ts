@@ -1,9 +1,13 @@
+import { UUID } from 'crypto';
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn } from 'typeorm';
 
 @Entity('videos')
 export class Video {
     @PrimaryGeneratedColumn()
     id: number;
+
+    @Column({ name: 'fileId', nullable: true })
+    fileId: UUID;
 
     @Column({ name: 'name', length: 70, nullable: false })
     name: string;
@@ -22,6 +26,12 @@ export class Video {
 
     @Column({ name: 'metadata', nullable: false })
     metadata: string;
+
+    @Column({ name: 'bucket', nullable: true })
+    bucket: string;
+
+    @Column({ name: 'status', nullable: false, default:1 })
+    status: number;
 
     @CreateDateColumn({ type: 'timestamptz', default: () => 'CURRENT_TIMESTAMP' })
     createDateTime: Date;

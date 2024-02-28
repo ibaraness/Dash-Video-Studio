@@ -14,6 +14,7 @@ import { Cache } from "cache-manager";
 import * as sharp from "sharp";
 import { Config } from "src/config/app.config";
 import { LoggerService } from "src/logger/logger.service";
+import { UUID } from "crypto";
 
 const ffprobePath = require('@ffprobe-installer/ffprobe').path;
 const ffmpegPath = require('@ffmpeg-installer/ffmpeg').path;
@@ -52,8 +53,6 @@ export class VideoService {
             throw Error("Unknown problem with getting Video Metadata")
         }
     }
-
-
 
     async getVideoInfo(videoPath: string): Promise<ffmpeg.FfprobeData> {
         const metadata = await ffprobeAsync(videoPath);
@@ -231,6 +230,18 @@ export class VideoService {
         return localPath.replace(localSegment, '');
     }
 
+    async deleteVideo(id: number) {
+        const video = await this.videoRepository.findOne({ where: { id } });
+        if (!video) {
+            throw new NotFoundException(`Video with ID ${id} not found`);
+        }
+        const deletedVideo = await this.videoRepository.delete(id)
+        await this.cacheManager.del("allVideos");
+        await this.cacheManager.del(`getById${id}`);
+        await this.cacheManager.del(String(id));
+        return deletedVideo;
+    }
+
     async updateTrascodeData(id: number, size: string, videoPath: string) {
         const video = await this.videoRepository.findOne({ where: { id } });
         if (!video) {
@@ -239,6 +250,21 @@ export class VideoService {
 
         const saved = await this.videoRepository.save(video);
         await this.cacheManager.del("allVideos");
+        await this.cacheManager.del(`getById${id}`);
+        await this.cacheManager.set(String(id), JSON.stringify(saved));
+        return saved;
+    }
+
+    async updateBucketData(id: number, bucket: string, fileId: UUID) {
+        const video = await this.videoRepository.findOne({ where: { id } });
+        if (!video) {
+            throw new NotFoundException(`Video with ID ${id} not found`);
+        }
+        video.bucket = bucket;
+        video.fileId = fileId;
+        const saved = await this.videoRepository.save(video);
+        await this.cacheManager.del("allVideos");
+        await this.cacheManager.del(`getById${id}`);
         await this.cacheManager.set(String(id), JSON.stringify(saved));
         return saved;
     }
@@ -252,6 +278,7 @@ export class VideoService {
         video.fallbackVideoPath = fallbackFile;
         const saved = await this.videoRepository.save(video);
         await this.cacheManager.del("allVideos");
+        await this.cacheManager.del(`getById${id}`);
         await this.cacheManager.set(String(id), JSON.stringify(saved));
         return saved;
     }
@@ -265,6 +292,7 @@ export class VideoService {
         video.description = description;
         const saved = await this.videoRepository.save(video);
         await this.cacheManager.del("allVideos");
+        await this.cacheManager.del(`getById${id}`);
         await this.cacheManager.set(String(id), JSON.stringify(saved));
         return saved;
     }

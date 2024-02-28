@@ -26,12 +26,18 @@ export const apiSlice = createApi({
                 body: { name, description },
                 invalidatesTags: ['VideoList']
             })
-        })
+        }),
+        deleteVideo: builder.mutation<undefined, number>({
+            query: (id) => ({
+                url: `/video/${id}`,
+                method: 'DELETE',
+                invalidatesTags: ['VideoList']
+            })
+        }),
     })
 });
 
-export const { useMultiPartUploaderMutation } = apiSlice;
-export const { useUpdateVideoMutation } = apiSlice;
+export const { useMultiPartUploaderMutation, useUpdateVideoMutation, useDeleteVideoMutation } = apiSlice;
 
 export interface VideoChunkInfo {
     chunkNumber: string;
