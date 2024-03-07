@@ -11,6 +11,7 @@ import useShakaABR from './hooks/useShakaABR';
 import eventEmitter from './utils/eventEmitter';
 import useVideoEventEmitter, { VideoEvent } from './hooks/useVideoEventEmitter';
 import VideoPlayerFrame from './VideoPlayerFrame';
+import SettingMenu from './settingMenu/SettingMenu';
 
 const ActualDashPlayer = () => {
     // Dash mpd src for streaming video (Later will come as a property - detach component from app state)
@@ -189,6 +190,7 @@ const ActualDashPlayer = () => {
 
                 </Box>
             }
+            <SettingMenu player={player} src={mpdSrc} />
         </VideoPlayerFrame>
     )
 }

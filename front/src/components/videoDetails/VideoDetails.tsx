@@ -10,9 +10,9 @@ import { setConfirmAction, setConfirmCallId, setConfirmMessage, setConfirmOpen, 
 import { useEffect } from "react";
 import eventEmitter from "../DashPlayer/utils/eventEmitter";
 import { ConfirmResponse } from "../confirm/ConfirmDialog";
-import { useDeleteVideoMutation } from "../../features/api/apiSlice";
 import { setMessage, setOpen, setSeverity } from "../../features/notification/notificationSlice";
-import { useGetVideosQuery } from "../../features/videoList/videoListSlice";
+import { deleteAVideo, getAllVideos } from "../../services/restAPI";
+import { addAllVideos } from "../../features/videoList/videoListsSlice";
 
 const VideoDetails = () => {
     const videoName = useAppSelector(selectVideoName);
@@ -21,23 +21,27 @@ const VideoDetails = () => {
     const mode = useAppSelector(selectVideoMode);
     const dispatch = useAppDispatch();
 
-    const [deleteVideo, {isError, error}] = useDeleteVideoMutation(undefined);
-    const { refetch } = useGetVideosQuery(undefined);
-
-
     useEffect(() => {
         async function deleteConfirmation({ action, id, approved }: ConfirmResponse) {
+            async function loadVideos() {
+                const res = await getAllVideos();
+                if (res.isError) {
+                    console.error(res.errorMessage);
+                    return;
+                }
+                dispatch(addAllVideos(res.data));
+            }
             try {
                 if (approved && action === 'delete') {
-                    await deleteVideo(id).unwrap();
-                    if (isError) {
-                        console.error("error", error);
+                    const res = await deleteAVideo(id);
+                    if(res.isError){
+                        console.error("error", res.errorMessage);
                         failureNotification();
                         return;
                     }
                     successNotification();
                     dispatch(clearVideoData());
-                    await refetch();
+                    await loadVideos();
                 }
             } catch (err) {
                 console.error(err);
@@ -114,14 +118,14 @@ const VideoDetails = () => {
                                 <Stack direction={"row"} spacing={1}>
                                     <Button
                                         size="small"
-                                        disabled={!(!!videoId)}
+                                        disabled={!videoId}
                                         sx={{ borderRadius: 2 }}
                                         startIcon={<EditIcon></EditIcon>}
                                         onClick={() => { setEditMode() }}
                                         variant="outlined">Edit</Button>
                                     <Button
                                         size="small"
-                                        disabled={!(!!videoId)}
+                                        disabled={!videoId}
                                         sx={{ borderRadius: 2 }}
                                         startIcon={<DeleteIcon></DeleteIcon>}
                                         onClick={() => { handleDelete() }}

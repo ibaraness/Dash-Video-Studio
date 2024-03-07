@@ -2,9 +2,9 @@ import { Stack, TextField, Button, Box, CircularProgress } from "@mui/material";
 import { selectVideoDescription, selectVideoId, selectVideoMode, selectVideoName, setVideoDescription, setVideoMode, setVideoName } from "../../features/video/videoSlice";
 import { useAppDispatch, useAppSelector } from "../../app/hooks";
 import { setMessage, setOpen, setSeverity } from "../../features/notification/notificationSlice";
-import { useUpdateVideoMutation } from "../../features/api/apiSlice";
-import { useGetVideosQuery } from "../../features/videoList/videoListSlice";
 import { isFetchBaseQueryError } from "../../services/helpers";
+import { editVideo, getAllVideos } from "../../services/restAPI";
+import { addAllVideos } from "../../features/videoList/videoListsSlice";
 
 const VideoDetailsForm = () => {
 
@@ -13,9 +13,6 @@ const VideoDetailsForm = () => {
     const videoDescription = useAppSelector(selectVideoDescription);
     const mode = useAppSelector(selectVideoMode);
     const dispatch = useAppDispatch();
-
-    const [updateVideo, { isError, error }] = useUpdateVideoMutation(undefined)
-    const { refetch } = useGetVideosQuery(undefined)
 
     const handleVideoName = (name: string) => {
         dispatch(setVideoName(name));
@@ -26,16 +23,22 @@ const VideoDetailsForm = () => {
     }
 
     const saveChanges = async () => {
-        try {
-            dispatch(setVideoMode("loading"));
-            await updateVideo({ id: videoId, name: videoName, description: videoDescription || "" }).unwrap();
-            if (isError) {
-                dispatch(setVideoMode("edit"));
-                console.error("error", error);
-                failureNotification()
+        async function loadVideos() {
+            const res = await getAllVideos();
+            if (res.isError) {
+                console.error(res.errorMessage);
                 return;
             }
-            await refetch();
+            dispatch(addAllVideos(res.data));
+        }
+        try {
+            dispatch(setVideoMode("loading"));
+            const res = await editVideo({ id: videoId, name: videoName, description: videoDescription || "" });
+            if(res.isError){
+                dispatch(setVideoMode("edit"));
+                failureNotification();
+            }
+            await loadVideos();
             dispatch(setVideoMode("display"));
             successNotification();
         } catch (err) {

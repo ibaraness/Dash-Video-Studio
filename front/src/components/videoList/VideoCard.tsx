@@ -2,7 +2,8 @@ import { Card, CardActionArea, CardMedia, CardContent, Typography } from "@mui/m
 import { useMemo } from "react";
 import { useAppDispatch } from "../../app/hooks";
 import { clearVideoData, setVideo } from "../../features/video/videoSlice";
-import { VideoResponse, VideoMetadata } from "../../features/videoList/videoListSlice.model";
+import { VideoResponse } from "../../services/restAPI";
+import { parseSecondsToTimeString } from "../DashPlayer/utils/general-utils";
 
 export const VideoCard = ({ video }: { video: VideoResponse }) => {
 
@@ -14,7 +15,7 @@ export const VideoCard = ({ video }: { video: VideoResponse }) => {
         dispatch(setVideo(video));
     }
 
-    const memoDuration = useMemo(() => getDuration(video.metadata), [video]);
+    const memoDuration = useMemo(() => parseSecondsToTimeString(video.metadata.duration), [video]);
 
     const imageURL = `${video.thumbnail}`;
 
@@ -56,12 +57,4 @@ export const VideoCard = ({ video }: { video: VideoResponse }) => {
             </CardActionArea>
         </Card>
     )
-}
-
-const getDuration = ({ duration }: VideoMetadata) => {
-    const rest = duration % 60;
-    const minutes = (duration - rest) / 60;
-    const seconds = Math.trunc(rest);
-    const time = `${minutes < 10 ? '0' : ''}${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
-    return time;
 }

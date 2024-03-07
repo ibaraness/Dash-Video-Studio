@@ -7,6 +7,8 @@ import useFullScreenEvent from "./hooks/useFullScreenEvent";
 import { Box } from "@mui/material";
 import eventEmitter from "./utils/eventEmitter";
 import useThrottle from "./hooks/useThrottle";
+import MobileMuteButton from "./MobileMuteButton";
+
 
 interface VideoPlayerFrameProps extends PropsWithChildren {
     mpdSrc: string;
@@ -18,6 +20,7 @@ const VideoPlayerFrame = ({ mpdSrc, videoElement, children }: VideoPlayerFramePr
     const playerContainerRef = useRef<HTMLDivElement>(null);
     const playing = useAppSelector(selectPlaying);
     const fullScreen = useAppSelector(selectFullScreen);
+
 
     const throttle = useThrottle()
 
@@ -39,10 +42,10 @@ const VideoPlayerFrame = ({ mpdSrc, videoElement, children }: VideoPlayerFramePr
         videoElement.style.position = "static";
         videoElement.style.top = `0px`;
         const width = videoContainerRef.current.offsetWidth;
-      
 
-      setFrameAspectRatio(htmlElement, width, AspectRatioAlg.W16H9);
-    },[videoElement.style])
+
+        setFrameAspectRatio(htmlElement, width, AspectRatioAlg.W16H9);
+    }, [videoElement.style])
 
     useEffect(() => {
         // Append video element to div container
@@ -50,7 +53,7 @@ const VideoPlayerFrame = ({ mpdSrc, videoElement, children }: VideoPlayerFramePr
             videoContainerRef.current.appendChild(videoElement);
             updateFrameAspectRatio(videoElement);
         }
-    }, [videoContainerRef,updateFrameAspectRatio, videoElement])
+    }, [videoContainerRef, updateFrameAspectRatio, videoElement])
 
     // Handler window resize
     useEffect(() => {
@@ -66,7 +69,7 @@ const VideoPlayerFrame = ({ mpdSrc, videoElement, children }: VideoPlayerFramePr
             listener.remove();
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    },[mpdSrc]);
+    }, [mpdSrc]);
 
     // Handle fullscreen events
     const fullscreenHandler = useCallback((isFullscreen: boolean) => {
@@ -83,7 +86,7 @@ const VideoPlayerFrame = ({ mpdSrc, videoElement, children }: VideoPlayerFramePr
         }
     }, [fullScreen, fullscreenHandler])
 
-    
+
 
     const togglePlayVideo = () => {
         dispatch(setPlaying(!playing));
@@ -128,7 +131,13 @@ const VideoPlayerFrame = ({ mpdSrc, videoElement, children }: VideoPlayerFramePr
                         }}
                     >
                         <VideoLoaderAnimation src={mpdSrc} videoElement={videoElement} />
+
+                        {/* Add mute icons to top right here */}
+                        <Box sx={{ position: "absolute", top: "5px", right: "10px" }}>
+                            <MobileMuteButton />
+                        </Box>
                     </div>
+
                 </Box>
                 {children}
             </div>
@@ -137,3 +146,4 @@ const VideoPlayerFrame = ({ mpdSrc, videoElement, children }: VideoPlayerFramePr
 }
 
 export default VideoPlayerFrame;
+

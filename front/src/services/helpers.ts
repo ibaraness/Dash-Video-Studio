@@ -15,6 +15,7 @@ export function isFetchBaseQueryError(
 export function isErrorWithMessage(
   error: unknown
 ): error is { message: string } {
+  /* eslint-disable  @typescript-eslint/no-explicit-any */
   return (
     typeof error === 'object' &&
     error != null &&
