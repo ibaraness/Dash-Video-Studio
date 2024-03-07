@@ -10,6 +10,10 @@ export class UsersService {
     ) {
     }
 
+    async clearAll() {
+        this.userRepository.clear();
+    }
+
     async createUser(username: string, email: string, password: string) {
         const user = this.userRepository.create({username: username.toLowerCase(), email: email.toLowerCase(), password});
         const {id} = await this.userRepository.save(user);

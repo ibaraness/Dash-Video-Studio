@@ -9,13 +9,14 @@ import {
     Put,
     Delete,
     HttpException,
-    HttpStatus
+    HttpStatus,
+    Req
 } from "@nestjs/common";
 import { FileInterceptor } from "@nestjs/platform-express";
 import { VideoService } from "./video.service";
 import { VideoUploadService } from "./video-upload.service";
 import { from, map, tap } from "rxjs";
-import { Response } from 'express';
+import { Request, Response } from 'express';
 import { InjectQueue } from "@nestjs/bull";
 import { Queue } from "bull";
 import { UplodedVideoDataCreator, VideoProcess, VideoUpdateDTO, VideoUploadDTO } from './video.model';
@@ -23,6 +24,8 @@ import { ChunkSavedStatus } from "./video-upload.model";
 import fs = require("fs");
 import * as path from "path";
 import { StorageService } from "src/storage/storage.service";
+import { VideoBuckets } from "src/storage/storage.config";
+import { Public } from "src/auth/decorators/public.decorator";
 
 @Controller('video')
 export class VideoController {
@@ -38,7 +41,16 @@ export class VideoController {
     @Get('clear')
     async clear() {
         if (process.env.NEST_MODE === 'dev') {
+            await this.storageService.deleteAllListOnBucket(VideoBuckets.Dash);
             return this.videoService.clear();
+        }
+    }
+
+    @Get('get-req-user')
+    async videoListTest(@Req() req: Request){
+        // await this.storageService.deleteAllListOnBucket(VideoBuckets.Dash);
+        return {
+            "message": req['user']["username"] || "No user ID"
         }
     }
 
@@ -119,6 +131,7 @@ export class VideoController {
         }
     }
 
+    @Public()
     @Post('/create-bucket')
     async createBucket(@Body() { name }: { name: string }) {
         if (name && name.length > 2) {
@@ -130,15 +143,17 @@ export class VideoController {
     @Post()
     @UseInterceptors(FileInterceptor('file'))
     async uploadAndTranscodeDashVideo(
+        @Req() req: Request,
         @UploadedFile() file: Express.Multer.File,
         @Body() body: VideoUploadDTO
     ): Promise<any> {
         return from(this.videoUploadService.handleSavingChunk(file.buffer, body)).pipe(
             tap(({ message, status, videoPath }) => {
                 if (status === ChunkSavedStatus.Done) {
+                    const userId = req['user']["username"] || `user${Math.ceil(Math.random() * 1234)}`;
                     this.videoQueue.add(
                         VideoProcess.ProcessUploadedVideo,
-                        UplodedVideoDataCreator(message, status, videoPath)
+                        UplodedVideoDataCreator(message, status, userId, videoPath)
                     )
                 }
             }),

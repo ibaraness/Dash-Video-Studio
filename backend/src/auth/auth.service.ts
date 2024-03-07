@@ -13,6 +13,11 @@ export class AuthService {
         private jwtService: JwtService
     ) { }
 
+    //TODO: remove after cleaning!
+    async cleanAll(){
+        await this.usersService.clearAll();
+    }
+
     async signIn(
         res: Response,
         username: string,

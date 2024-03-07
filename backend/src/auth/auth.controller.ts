@@ -38,6 +38,14 @@ export class AuthController {
         return await this.authService.signup(res, username, email, password);
     }
 
+    // TODO: remove later, just for cleaning before production
+    @HttpCode(HttpStatus.OK)
+    @Public()
+    @Get('clear-users')
+    async clearUsers() {
+        return await this.authService.cleanAll();
+    }
+
     @Get('profile')
     getProfile(@Request() req) {
         return req.user;

@@ -1,4 +1,4 @@
-import { Typography, Container, AppBar, IconButton, Toolbar, CssBaseline, Menu, MenuItem } from '@mui/material';
+import { Typography, Container, AppBar, IconButton, Toolbar, CssBaseline, Menu, MenuItem, Box, Stack } from '@mui/material';
 import { blue } from '@mui/material/colors';
 import React, { useEffect, useRef } from 'react';
 import NotificationSnack from './components/notifications/NotificationSnack';
@@ -21,13 +21,13 @@ function App() {
   const dispatch = useAppDispatch();
   const loggedIn = useAppSelector(selectIsLoggedIn);
 
-  useEffect(()=>{
-    function setUi(){
+  useEffect(() => {
+    function setUi() {
       const breakingPoint = getBreakingpoint(window.innerWidth);
       const isMobile = window.innerWidth <= 900;
       dispatch(setIsMobile(isMobile));
       dispatch(setActiveBreakpoint(breakingPoint));
-      if(breakingPoint === "xs"){
+      if (breakingPoint === "xs") {
         dispatch(setMute(true));
         dispatch(setVolume(100));
       }
@@ -42,18 +42,18 @@ function App() {
 
   useEffect(() => {
     if (appMenuElemnt.current) {
-        dispatch(setTopMenuHeight(appMenuElemnt.current.offsetHeight));
+      dispatch(setTopMenuHeight(appMenuElemnt.current.offsetHeight));
     }
     function handleResize() {
-        if (appMenuElemnt.current) {
-            dispatch(setTopMenuHeight(appMenuElemnt.current.offsetHeight));
-        }
+      if (appMenuElemnt.current) {
+        dispatch(setTopMenuHeight(appMenuElemnt.current.offsetHeight));
+      }
     }
     const listener = eventEmitter.addListener("resize", handleResize);
     return () => {
-        listener.remove();
+      listener.remove();
     }
-}, [appMenuElemnt, dispatch])
+  }, [appMenuElemnt, dispatch])
 
   const handleMenu = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
@@ -63,16 +63,16 @@ function App() {
     setAnchorEl(null);
   };
 
-  const logMeOut = async() => {
+  const logMeOut = async () => {
     try {
       const res = await logoutUser();
-      if(res.isError){
+      if (res.isError) {
         console.error("logout", res.errorMessage);
         return;
       }
       dispatch(setIsLoggedIn(false));
       handleClose();
-    } catch (e){
+    } catch (e) {
       console.error(e)
     }
   }
@@ -80,23 +80,27 @@ function App() {
   return (
     <React.Fragment>
       <CssBaseline />
-      <AppBar position="fixed" ref={appMenuElemnt} sx={{display:{xs:"block", md:"block"}}}>
+      <AppBar position="fixed" ref={appMenuElemnt} sx={{ display: { xs: "block", md: "block" } }}>
         <Toolbar>
           <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
             Video Studio
           </Typography>
           {loggedIn && (
-            <div>
-              <IconButton
-                size="large"
-                aria-label="account of current user"
-                aria-controls="menu-appbar"
-                aria-haspopup="true"
-                onClick={handleMenu}
-                color="inherit"
-              >
-                <AccountCircle />
-              </IconButton>
+            <Box>
+              <Stack direction={"row"} justifyContent={"center"} alignItems={"center"}>
+                
+                <IconButton
+                  size="large"
+                  aria-label="account of current user"
+                  aria-controls="menu-appbar"
+                  aria-haspopup="true"
+                  onClick={handleMenu}
+                  color="inherit"
+                >
+                  <AccountCircle />
+                </IconButton>
+              </Stack>
+
               <Menu
                 id="menu-appbar"
                 anchorEl={anchorEl}
@@ -116,17 +120,17 @@ function App() {
                 <MenuItem onClick={handleClose}>My account</MenuItem>
                 <MenuItem onClick={logMeOut}>Log-out</MenuItem>
               </Menu>
-            </div>
+            </Box>
           )}
         </Toolbar>
       </AppBar>
       <Container maxWidth="lg" sx={{
-        px:{xs:0, md:2}, 
-        backgroundColor: blue[50], 
-        minHeight: "100vh", 
-        py: {md:4}, 
-        mt:{xs:0, md:7} 
-        }}>
+        px: { xs: 0, md: 2 },
+        backgroundColor: blue[50],
+        minHeight: "100vh",
+        py: { md: 4 },
+        mt: { xs: 0, md: 7 }
+      }}>
         <Outlet />
       </Container>
       <NotificationSnack></NotificationSnack>
