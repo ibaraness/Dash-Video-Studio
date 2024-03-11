@@ -4,7 +4,7 @@ import { selectConfirmAction, selectConfirmCallId, selectConfirmMessage, selectC
 import eventEmitter from "../DashPlayer/utils/eventEmitter";
 
 export interface ConfirmResponse {
-    id: number,
+    id: number | string,
     action: string;
     approved: boolean;
 }

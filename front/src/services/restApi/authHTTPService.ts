@@ -140,7 +140,7 @@ class AuthHTTPService {
         };
     }
 
-    private generateErrorResponse<S = unknown>(err: unknown): CustomResponse<S | null> {
+    public generateErrorResponse<S = unknown>(err: unknown): CustomResponse<S | null> {
         if (err instanceof AxiosError) {
             return { ...this.generalErrorResponse<S>(), errorMessage: err.response?.data.message, statusCode: err.response?.status || 500 }
         }

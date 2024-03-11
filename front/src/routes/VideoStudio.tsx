@@ -1,5 +1,5 @@
 import { Grid, Box, Paper, Button, Typography, Stack } from "@mui/material"
-import { selectPercent, selectTranscodePercent, selectUploadMode, setIsConectedToServer, setPercent, setTranscodePercent, setUploadMode, setVideoInputValue } from "../features/videoUpload/videoUploadSlice"
+import { selectPercent, selectTranscodePercent, selectUploadMode, setIsConectedToServer, setPercent, setTranscodePercent, setUploadMode } from "../features/videoUpload/videoUploadSlice"
 import LinearProgressWithLabel from "../components/LinearProgressWithLabel"
 import InputFileUpload from "../components/UploadButton"
 import { VideoList } from "../components/videoList/VideoList"
@@ -12,8 +12,8 @@ import VideoDetails from "../components/videoDetails/VideoDetails"
 import { VideoResponse } from "../features/videoList/videoListSlice.model"
 import eventEmitter from "../components/DashPlayer/utils/eventEmitter"
 import { selectIsMobile, selectTopMenuHeight, selectTopOffset, setTopOffset } from "../features/ui/uiSlice"
-import { addAllVideos } from "../features/videoList/videoListsSlice"
-import { getAllVideos } from "../services/restApi/restAPI"
+import { addAllVideos, fetchVideos } from "../features/videoList/videoListsSlice"
+import { setMessage, setOpen, setSeverity } from "../features/notification/notificationSlice"
 
 interface TranscodeResponse {
     status: string;
@@ -56,8 +56,6 @@ const VideoStudio = () => {
         }
     })
 
-
-
     useEffect(() => {
         const OnPackageTrascode = (value: TranscodeResponse) => {
             dispatch(setTranscodePercent(+value.percentage));
@@ -66,18 +64,29 @@ const VideoStudio = () => {
         const onVideoUpdated = async (data: VideoResponse) => {
             console.log("videoUpdated")
             async function loadVideos() {
-                console.log("loadVideos")
-                const res = await getAllVideos();
-                if (res.isError) {
-                    console.error(res.errorMessage);
-                    return;
+                try {
+                    const res = await dispatch(fetchVideos()).unwrap();
+                    dispatch(addAllVideos(res || []));
+                } catch (e) {
+                    if(typeof e === "object"){
+                       const errorWithMessage = {message:"Something went wrong!", ...e};
+                       failureNotification(errorWithMessage.message);
+                       return;
+                    }
+                    failureNotification();
+                    console.error(e);
                 }
-                dispatch(addAllVideos(res.data!));
             }
             await loadVideos();
             dispatch(setUploadMode("inactive"));
             dispatch(setVideo(data));
             dispatch(setVideoMode("edit"));
+        }
+
+        const failureNotification = (message = "Something went wrong!") => {
+            dispatch(setMessage(message));
+            dispatch(setSeverity("error"));
+            dispatch(setOpen(true));
         }
 
         socket.on('packageTranscode', OnPackageTrascode);

@@ -3,8 +3,8 @@ import { selectVideoDescription, selectVideoId, selectVideoMode, selectVideoName
 import { useAppDispatch, useAppSelector } from "../../app/hooks";
 import { setMessage, setOpen, setSeverity } from "../../features/notification/notificationSlice";
 import { isFetchBaseQueryError } from "../../services/helpers";
-import { editVideo, getAllVideos } from "../../services/restApi/restAPI";
-import { addAllVideos } from "../../features/videoList/videoListsSlice";
+import { editVideo } from "../../services/restApi/restAPI";
+import { addAllVideos, fetchVideos } from "../../features/videoList/videoListsSlice";
 
 const VideoDetailsForm = () => {
 
@@ -24,12 +24,18 @@ const VideoDetailsForm = () => {
 
     const saveChanges = async () => {
         async function loadVideos() {
-            const res = await getAllVideos();
-            if (res.isError) {
-                console.error(res.errorMessage);
-                return;
+            try {
+                const res = await dispatch(fetchVideos()).unwrap();
+                dispatch(addAllVideos(res || []));
+            } catch (e) {
+                if(typeof e === "object"){
+                   const errorWithMessage = {message:"Something went wrong!", ...e};
+                   failureNotification(errorWithMessage.message);
+                   return;
+                }
+                failureNotification();
+                console.error(e);
             }
-            dispatch(addAllVideos(res.data!));
         }
         try {
             dispatch(setVideoMode("loading"));
