@@ -3,7 +3,7 @@ import EditIcon from '@mui/icons-material/Edit';
 import { selectVideoDescription, selectVideoName, selectVideoMode, setVideoMode, selectVideoId, clearVideoData } from "../../features/video/videoSlice";
 import { useAppDispatch, useAppSelector } from "../../app/hooks";
 import VideoDetailsForm from "./VideoDetailsForm";
-import { setUploadMode } from "../../features/videoUpload/videoUploadSlice";
+import { setPercent, setTranscodePercent, setUploadMode } from "../../features/videoUpload/videoUploadSlice";
 import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { setConfirmAction, setConfirmCallId, setConfirmMessage, setConfirmOpen, setConfirmTitle } from "../../features/confirm/confirmSlice";
@@ -11,7 +11,7 @@ import { useEffect } from "react";
 import eventEmitter from "../DashPlayer/utils/eventEmitter";
 import { ConfirmResponse } from "../confirm/ConfirmDialog";
 import { setMessage, setOpen, setSeverity } from "../../features/notification/notificationSlice";
-import { deleteAVideo, getAllVideos } from "../../services/restAPI";
+import { deleteAVideo, getAllVideos } from "../../services/restApi/restAPI";
 import { addAllVideos } from "../../features/videoList/videoListsSlice";
 
 const VideoDetails = () => {
@@ -29,7 +29,7 @@ const VideoDetails = () => {
                     console.error(res.errorMessage);
                     return;
                 }
-                dispatch(addAllVideos(res.data));
+                dispatch(addAllVideos(res.data!));
             }
             try {
                 if (approved && action === 'delete') {
@@ -72,7 +72,9 @@ const VideoDetails = () => {
     }
 
     const showUpload = () => {
-        dispatch(setUploadMode("active"))
+        dispatch(setPercent(0));
+        dispatch(setTranscodePercent(0));
+        dispatch(setUploadMode("active"));
     }
 
     const handleDelete = () => {

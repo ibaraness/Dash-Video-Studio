@@ -12,7 +12,7 @@ import { useAppDispatch, useAppSelector } from '../app/hooks';
 import { selectIsLoggedIn, selectRefreshAttempts, setIsLoggedIn } from '../features/login/loginSlice';
 import { useNavigate, Link as RouterLink } from "react-router-dom";
 import { useEffect, useState } from 'react';
-import { loginUser, refreshUserToken } from '../services/restAPI';
+import { loginUser, refreshUserToken } from '../services/restApi/restAPI';
 
 const LoginPage = () => {
 
@@ -102,7 +102,7 @@ const LoginPage = () => {
                         name="username"
                         autoComplete="username"
                         autoFocus
-                        defaultValue={"ibaraness"}
+                        defaultValue={"idan"}
                     />
                     <TextField
                         margin="normal"

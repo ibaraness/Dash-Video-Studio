@@ -10,7 +10,7 @@ import ConfirmDialog from './components/confirm/ConfirmDialog';
 import { Outlet } from "react-router-dom";
 import AccountCircle from '@mui/icons-material/AccountCircle';
 import { selectIsLoggedIn, setIsLoggedIn } from './features/login/loginSlice';
-import { logoutUser } from './services/restAPI';
+import { logoutUser } from './services/restApi/restAPI';
 import { setMute, setVolume } from './features/videoPlayer/videoPlayerSlice';
 
 

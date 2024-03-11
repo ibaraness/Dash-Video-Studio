@@ -13,7 +13,7 @@ import { VideoResponse } from "../features/videoList/videoListSlice.model"
 import eventEmitter from "../components/DashPlayer/utils/eventEmitter"
 import { selectIsMobile, selectTopMenuHeight, selectTopOffset, setTopOffset } from "../features/ui/uiSlice"
 import { addAllVideos } from "../features/videoList/videoListsSlice"
-import { getAllVideos } from "../services/restAPI"
+import { getAllVideos } from "../services/restApi/restAPI"
 
 interface TranscodeResponse {
     status: string;
@@ -33,6 +33,13 @@ const VideoStudio = () => {
     const topMenuOffset = useAppSelector(selectTopMenuHeight);
 
     useEffect(() => {
+        socket.connect();
+        return () =>{
+            socket.disconnect();
+        }
+    },[]);
+
+    useEffect(() => {
         function onConnect() {
             dispatch(setIsConectedToServer(true));
         }
@@ -43,35 +50,47 @@ const VideoStudio = () => {
 
         socket.on('connect', onConnect);
         socket.on('disconnect', onDisconnect);
+        return ()=>{
+            socket.off('connect', onConnect);
+            socket.off('disconnect', onDisconnect);
+        }
+    })
 
-        socket.on('packageTranscode', (value: TranscodeResponse) => {
+
+
+    useEffect(() => {
+        const OnPackageTrascode = (value: TranscodeResponse) => {
             dispatch(setTranscodePercent(+value.percentage));
-        })
+        }
 
-        socket.on('videoUpdated', async (data: VideoResponse) => {
+        const onVideoUpdated = async (data: VideoResponse) => {
+            console.log("videoUpdated")
             async function loadVideos() {
+                console.log("loadVideos")
                 const res = await getAllVideos();
                 if (res.isError) {
                     console.error(res.errorMessage);
                     return;
                 }
-                dispatch(addAllVideos(res.data));
+                dispatch(addAllVideos(res.data!));
             }
             await loadVideos();
             dispatch(setUploadMode("inactive"));
             dispatch(setVideo(data));
             dispatch(setVideoMode("edit"));
-        })
-        return () => {
-            socket.off('connect', onConnect);
-            socket.off('disconnect', onDisconnect);
-        };
+        }
 
-    });
+        socket.on('packageTranscode', OnPackageTrascode);
+        socket.on('videoUpdated', onVideoUpdated);
+
+        return () => {
+            socket.off('packageTranscode', OnPackageTrascode);
+            socket.off('videoUpdated', onVideoUpdated);
+        };
+    },[dispatch]);
 
     const handleClearForm = () => {
         dispatch(setPercent(0));
-        dispatch(setVideoInputValue(""));
         dispatch(setUploadMode("inactive"));
     }
 
@@ -106,7 +125,7 @@ const VideoStudio = () => {
                         uploadMode === "inactive"
                             ? <Paper sx={{
                                 px: { md: 4, xs: 0 },
-                                py: { md: 2, xs: 0 },
+                                py: { md: 3, xs: 0 },
                                 mb: 2,
 
                             }}>

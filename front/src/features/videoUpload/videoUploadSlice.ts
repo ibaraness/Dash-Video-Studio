@@ -8,7 +8,6 @@ const initialState: VideoUploadState = {
     transcodePercent: 0,
     chunkNumber: 0,
     totalChunks: 0,
-    videoInputValue: "",
     uploadedStatus: UploadedStatus.Idle,
     isConnectedToServer: false,
     videoName:"",
@@ -33,9 +32,6 @@ export const videoUploadSlice = createSlice({
         setTotalChunks: (state, action: PayloadAction<number>) => {
             state.totalChunks = action.payload;
         },
-        setVideoInputValue: (state, action: PayloadAction<string>) => {
-            state.videoInputValue = action.payload;
-        },
         setVideoUploadStatus: (state, action: PayloadAction<UploadedStatus>) => {
             state.uploadedStatus = action.payload;
         },
@@ -58,7 +54,6 @@ export const videoUploadSlice = createSlice({
 });
 
 export const selectPercent = (state: RootState) => state.videoUpload.percent;
-export const selectVideoInputValue = (state: RootState) => state.videoUpload.videoInputValue;
 export const selectVideoUploadStatus = (state: RootState) => state.videoUpload.uploadedStatus;
 export const selectTranscodePercent = (state: RootState) => state.videoUpload.transcodePercent;
 export const selectIsConnectedToServer = (state: RootState) => state.videoUpload.isConnectedToServer;
@@ -71,7 +66,6 @@ export const {
     setPercent,
     setChunkNumber,
     setTotalChunks,
-    setVideoInputValue,
     setVideoUploadStatus,
     setTranscodePercent,
     setIsConectedToServer,

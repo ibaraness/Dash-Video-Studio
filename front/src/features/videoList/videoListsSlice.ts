@@ -1,6 +1,6 @@
 import { PayloadAction, createEntityAdapter, createSlice } from '@reduxjs/toolkit';
 import { RootState } from '../../store/store';
-import { VideoResponse } from '../../services/restAPI';
+import { VideoResponse } from '../../services/restApi/restAPI';
 
 // Creating an entity adapter to normalize the user lists into
 // object based collection with the users IDs as keys

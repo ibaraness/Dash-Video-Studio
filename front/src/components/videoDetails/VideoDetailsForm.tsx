@@ -3,7 +3,7 @@ import { selectVideoDescription, selectVideoId, selectVideoMode, selectVideoName
 import { useAppDispatch, useAppSelector } from "../../app/hooks";
 import { setMessage, setOpen, setSeverity } from "../../features/notification/notificationSlice";
 import { isFetchBaseQueryError } from "../../services/helpers";
-import { editVideo, getAllVideos } from "../../services/restAPI";
+import { editVideo, getAllVideos } from "../../services/restApi/restAPI";
 import { addAllVideos } from "../../features/videoList/videoListsSlice";
 
 const VideoDetailsForm = () => {
@@ -29,14 +29,16 @@ const VideoDetailsForm = () => {
                 console.error(res.errorMessage);
                 return;
             }
-            dispatch(addAllVideos(res.data));
+            dispatch(addAllVideos(res.data!));
         }
         try {
             dispatch(setVideoMode("loading"));
             const res = await editVideo({ id: videoId, name: videoName, description: videoDescription || "" });
+            console.log("res", res);
             if(res.isError){
                 dispatch(setVideoMode("edit"));
                 failureNotification();
+                return;
             }
             await loadVideos();
             dispatch(setVideoMode("display"));

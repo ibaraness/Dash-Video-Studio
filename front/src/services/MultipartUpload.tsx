@@ -1,7 +1,7 @@
 import { AppConfig } from "../app/config/config";
 import { v4 as uuidv4 } from 'uuid';
 import { ProgressPayload, VideoStatusResponse } from "./MultipartUpload.model";
-import { getAccessToken } from "./tokenProvider";
+import authHttpService from "./restApi/authHTTPService";
 
 export const multipartUpload = (
     largeFile: File,
@@ -50,12 +50,8 @@ export const multipartUpload = (
             formData.append("uploadId", uploadId);
 
             try {
-                const res = await fetch(uploadURL, {
-                    method: "POST",
-                    headers: {'Authorization': `Bearer ${getAccessToken() || ""}`},
-                    body: formData,
-                });
-                progress = await res.json();
+                const res = await authHttpService.post<FormData, VideoStatusResponse>(uploadURL, formData)
+                progress = res.data!;
 
                 percent = Number((chunkNumber + 1) * percentUnit);
                 chunkNumber++;

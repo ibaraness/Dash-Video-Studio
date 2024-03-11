@@ -13,7 +13,7 @@ import { useNavigate, Link as RouterLink } from "react-router-dom";
 import { useEffect, useState } from 'react';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
-import { refreshUserToken, signupUser } from '../services/restAPI';
+import { refreshUserToken, signupUser } from '../services/restApi/restAPI';
 
 const SignUp = () => {
 

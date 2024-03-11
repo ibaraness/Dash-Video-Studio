@@ -2,8 +2,8 @@ import { Card, CardActionArea, CardMedia, CardContent, Typography } from "@mui/m
 import { useMemo } from "react";
 import { useAppDispatch } from "../../app/hooks";
 import { clearVideoData, setVideo } from "../../features/video/videoSlice";
-import { VideoResponse } from "../../services/restAPI";
 import { parseSecondsToTimeString } from "../DashPlayer/utils/general-utils";
+import { VideoResponse } from "../../features/videoList/videoListSlice.model";
 
 export const VideoCard = ({ video }: { video: VideoResponse }) => {
 
@@ -20,7 +20,7 @@ export const VideoCard = ({ video }: { video: VideoResponse }) => {
     const imageURL = `${video.thumbnail}`;
 
     return (
-        <Card sx={{ mb: 2, position: "relative" }} key={video.id}>
+        <Card variant="outlined" sx={{ mb: 2, position: "relative", borderRadius:{xs:0, md:1} }} key={video.id}>
             <CardActionArea onClick={() => handleSelectedVideo(video)}>
                 <CardMedia
                     component="img"

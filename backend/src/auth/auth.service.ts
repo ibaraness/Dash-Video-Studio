@@ -15,7 +15,9 @@ export class AuthService {
 
     //TODO: remove after cleaning!
     async cleanAll(){
-        await this.usersService.clearAll();
+        if (process.env.NEST_MODE === 'dev') {
+            await this.usersService.clearAll(); 
+        }
     }
 
     async signIn(
@@ -105,14 +107,14 @@ export class AuthService {
         const newRefreshToken = await this.createRefreshToken(userId);
 
         res.cookie('refreshToken', newRefreshToken, {
-            httpOnly: true,//true,
-            secure: true, //true,
-            sameSite: 'strict'//'strict'
+            httpOnly: true,
+            secure: true, 
+            sameSite: 'strict'
         });
     }
 
     async createAccessToken(userId: string, username: string) {
-        return this.jwtService.signAsync({ sub: userId, username }, { expiresIn: '15m' });
+        return this.jwtService.signAsync({ sub: userId, username }, { expiresIn: '15m' }); //Change back to 15 minutes
     }
 
     async createRefreshToken(userId: string) {
