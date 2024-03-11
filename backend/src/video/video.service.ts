@@ -204,7 +204,8 @@ export class VideoService {
             order: { "lastChangedDateTime": "DESC" }
         });
         if (!videos || !videos.length) {
-            throw new NotFoundException(`Videos not found!`);
+            this.logger.debug(`Videos not found!`, VideoService.name);
+            return [];
         }
 
         const allVideos = videos.map(({ dashFilePath, thumbnail, fallbackVideoPath, ...rest }) => {
