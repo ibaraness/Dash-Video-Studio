@@ -23,7 +23,7 @@ export const editVideo = async <VideoResponse>(
     return authHttpService.put<{ name: string, description: string }, VideoResponse>(`/video/${id}`, { name, description });
 }
 
-export const deleteAVideo = async (id: number): Promise<CustomResponse> => {
+export const deleteAVideo = async (id: string): Promise<CustomResponse> => {
     return authHttpService.delete(`/video/${id}`);
 }
 

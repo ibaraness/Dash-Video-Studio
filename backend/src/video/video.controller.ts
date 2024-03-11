@@ -39,9 +39,11 @@ export class VideoController {
 
     // TODO: Remove for production
     @Get('clear')
-    async clear() {
+    async clear(@Req() req: Request) {
         if (process.env.NEST_MODE === 'dev') {
-            await this.storageService.deleteAllListOnBucket(VideoBuckets.Dash);
+            const userBucket = req['user']["username"] || VideoBuckets.Dash;
+            console.log("userBucket", userBucket)
+            await this.storageService.deleteAllListOnBucket(userBucket);
             return this.videoService.clear();
         }
     }
@@ -64,7 +66,7 @@ export class VideoController {
     @Header('Accept-Ranges', 'bytes')
     @Header('Content-Type', 'video/mp4')
     async getStreamVideo(
-        @Param('id') videoId: number,
+        @Param('id') videoId: string,
         @Param('resolution') resolution: string,
         @Headers('range') headers: { 'range': string },
         @Res() res: Response
@@ -73,20 +75,20 @@ export class VideoController {
     }
 
     @Get('/info/:id')
-    async videoInfo(@Param('id') videoId: number) {
+    async videoInfo(@Param('id') videoId: string) {
         const { id, metadata, ...others } = await this.videoService.loadvideo(videoId);
         return { id, metadata: JSON.parse(metadata) };
     }
 
     @Get('/fullinfo/:id')
-    async widevideoInfo(@Param('id') videoId: number) {
+    async widevideoInfo(@Param('id') videoId: string) {
         const { fallbackVideoPath } = await this.videoService.loadvideo(videoId);
         const metadata = await this.videoService.getVideoInfo(fallbackVideoPath)
         return metadata;
     }
 
     @Get('/:id')
-    async getSingleVideo(@Param('id') videoId: number) {
+    async getSingleVideo(@Param('id') videoId: string) {
         const video = await this.videoService.loadvideo(videoId);
         const { dashFilePath, thumbnail, fallbackVideoPath, ...rest } = video;
         return {
@@ -100,7 +102,7 @@ export class VideoController {
 
     // Upadte video title, description and tags
     @Put('/:id')
-    async updateVideo(@Param('id') videoId: number, @Body() { name, description }: VideoUpdateDTO) {
+    async updateVideo(@Param('id') videoId: string, @Body() { name, description }: VideoUpdateDTO) {
         const video = await this.videoService.updateNameAndDescription(videoId, name, description);
         const { dashFilePath, thumbnail, fallbackVideoPath, ...rest } = video;
         return {
@@ -113,7 +115,7 @@ export class VideoController {
     }
 
     @Delete('/:id')
-    async deleteVideo(@Param('id') videoId: number) {
+    async deleteVideo(@Param('id') videoId: string) {
         try {
             // Getting the file from database
             const video = await this.videoService.loadvideo(videoId);
@@ -123,7 +125,7 @@ export class VideoController {
 
             // Deleting it from db
             const deletedVideo = await this.videoService.deleteVideo(videoId);
-            console.log(deletedVideo);
+
             return { deletedVideo };
         } catch (err) {
             const message = err.message || "something went wrong!";

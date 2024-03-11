@@ -59,7 +59,7 @@ export class VideoService {
         return metadata;
     }
 
-    async streamVideo(res: Response, headers: { range: string }, videoId: number, resolution?: string): Promise<void> {
+    async streamVideo(res: Response, headers: { range: string }, videoId: string, resolution?: string): Promise<void> {
         let { fallbackVideoPath: videoPath } = await this.loadvideo(videoId);
 
         // Add check if exist
@@ -158,7 +158,7 @@ export class VideoService {
         await this.cacheManager.reset();
     }
 
-    async loadvideo(id: number): Promise<Video> {
+    async loadvideo(id: string): Promise<Video> {
         const cached: string = await this.cacheManager.get(String(id));
         if (cached) {
             return JSON.parse(cached);
@@ -171,7 +171,7 @@ export class VideoService {
         return video;
     }
 
-    async getById(id: number): Promise<VideoPublic> {
+    async getById(id: string): Promise<VideoPublic> {
         const cached: string = await this.cacheManager.get(`getById${id}`);
         if (cached) {
             return JSON.parse(cached);
@@ -230,7 +230,7 @@ export class VideoService {
         return localPath.replace(localSegment, '');
     }
 
-    async deleteVideo(id: number) {
+    async deleteVideo(id: string) {
         const video = await this.videoRepository.findOne({ where: { id } });
         if (!video) {
             throw new NotFoundException(`Video with ID ${id} not found`);
@@ -242,7 +242,7 @@ export class VideoService {
         return deletedVideo;
     }
 
-    async updateTrascodeData(id: number, size: string, videoPath: string) {
+    async updateTrascodeData(id: string, size: string, videoPath: string) {
         const video = await this.videoRepository.findOne({ where: { id } });
         if (!video) {
             throw new NotFoundException(`Video with ID ${id} not found`);
@@ -255,7 +255,7 @@ export class VideoService {
         return saved;
     }
 
-    async updateBucketData(id: number, bucket: string, fileId: UUID) {
+    async updateBucketData(id: string, bucket: string, fileId: UUID) {
         const video = await this.videoRepository.findOne({ where: { id } });
         if (!video) {
             throw new NotFoundException(`Video with ID ${id} not found`);
@@ -269,7 +269,7 @@ export class VideoService {
         return saved;
     }
 
-    async updateDashData(id: number, dashFilePath: string, fallbackFile: string) {
+    async updateDashData(id: string, dashFilePath: string, fallbackFile: string) {
         const video = await this.videoRepository.findOne({ where: { id } });
         if (!video) {
             throw new NotFoundException(`Video with ID ${id} not found`);
@@ -283,7 +283,7 @@ export class VideoService {
         return saved;
     }
 
-    async updateNameAndDescription(id: number, name: string, description: string) {
+    async updateNameAndDescription(id: string, name: string, description: string) {
         const video = await this.videoRepository.findOne({ where: { id } });
         if (!video) {
             throw new NotFoundException(`Video with ID ${id} not found`);

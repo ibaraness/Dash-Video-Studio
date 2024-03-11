@@ -41,7 +41,7 @@ export const VideoCard = ({ video }: { video: VideoResponse }) => {
                         textOverflow={"ellipsis"}
                         textTransform={"capitalize"}
                         component="div">
-                        {`${video.name} (${video.id})`}
+                        {`${video.name}`}
                     </Typography>
                     <Typography
                         position={"absolute"}

@@ -46,7 +46,7 @@ export interface VideoPublic {
     thumbnail: string;
     dash: string;
     metadata: any;
-    id: number;
+    id: string;
     name: string;
     description: string;
     createDateTime: Date;

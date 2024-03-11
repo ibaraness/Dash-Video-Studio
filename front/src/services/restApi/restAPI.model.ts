@@ -44,7 +44,7 @@ export interface VideoMetadata {
 }
 
 export interface VideoResponse {
-    id: number;
+    id: string;
     name: string;
     description: string | null;
     thumbnail: string;
