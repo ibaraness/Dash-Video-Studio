@@ -28,6 +28,6 @@ export const deleteAVideo = async (id: string): Promise<CustomResponse> => {
 }
 
 export const getAllVideos = async (): Promise<CustomResponse<VideoResponse[] | null>> => {
-    await (new Promise(resolve => setTimeout(resolve, 1000)))
+    // await (new Promise(resolve => setTimeout(resolve, 1000)))
     return authHttpService.get<VideoResponse[]>(`/video/all`);
 }

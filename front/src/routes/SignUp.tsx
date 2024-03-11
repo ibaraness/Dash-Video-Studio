@@ -64,7 +64,6 @@ const SignUp = () => {
             }
             dispatch(setIsLoggedIn(true));
         } catch (err) {
-            console.log("I am here", err)
             setSignupError("Unknown error occurred, please try again later!");
         }
     }
@@ -76,7 +75,6 @@ const SignUp = () => {
                 if(res.isError){
                     return;
                 }
-                console.log("refresh", res);
                 dispatch(setIsLoggedIn(true));
             } catch (e) {
                 console.error("e", e)

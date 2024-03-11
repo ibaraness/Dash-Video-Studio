@@ -62,7 +62,6 @@ const VideoStudio = () => {
         }
 
         const onVideoUpdated = async (data: VideoResponse) => {
-            console.log("videoUpdated")
             async function loadVideos() {
                 try {
                     const res = await dispatch(fetchVideos()).unwrap();

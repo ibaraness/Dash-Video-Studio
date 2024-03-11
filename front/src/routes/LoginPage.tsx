@@ -9,7 +9,7 @@ import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import Typography from '@mui/material/Typography';
 import { Alert, Paper } from '@mui/material';
 import { useAppDispatch, useAppSelector } from '../app/hooks';
-import { selectIsLoggedIn, selectRefreshAttempts, setIsLoggedIn } from '../features/login/loginSlice';
+import { selectIsLoggedIn, selectRefreshAttempts, setIsLoggedIn, setRefreshAttempts } from '../features/login/loginSlice';
 import { useNavigate, Link as RouterLink } from "react-router-dom";
 import { useEffect, useState } from 'react';
 import { loginUser, refreshUserToken } from '../services/restApi/restAPI';
@@ -34,7 +34,8 @@ const LoginPage = () => {
             }
             dispatch(setIsLoggedIn(true));
         } catch (err) {
-            console.log("err", err)
+            // Handle error here
+            console.error(err)
         }
     }
 
@@ -52,7 +53,8 @@ const LoginPage = () => {
         }
         if (isLoggedIn) {
             navigate("/");
-        } else if(refreshAttempts < 2) {
+        } else if(refreshAttempts < 1) {
+            dispatch(setRefreshAttempts(refreshAttempts + 1));
             refresh();
         }
 

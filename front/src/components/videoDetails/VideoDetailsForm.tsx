@@ -40,7 +40,6 @@ const VideoDetailsForm = () => {
         try {
             dispatch(setVideoMode("loading"));
             const res = await editVideo({ id: videoId, name: videoName, description: videoDescription || "" });
-            console.log("res", res);
             if(res.isError){
                 dispatch(setVideoMode("edit"));
                 failureNotification();
