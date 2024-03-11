@@ -1,18 +1,24 @@
-import { configureStore } from '@reduxjs/toolkit'
-import videoUploadSlice from '../features/videoUpload/videoUploadSlice'
+import { configureStore } from '@reduxjs/toolkit';
+import videoUploadSlice from '../features/videoUpload/videoUploadSlice';
 import videoSlice from '../features/video/videoSlice';
-import { apiSlice } from '../features/api/apiSlice';
 import videoPlayerSlice from '../features/videoPlayer/videoPlayerSlice';
+import notificationSlice from '../features/notification/notificationSlice';
+import uiSlice from '../features/ui/uiSlice';
+import confirmSlice from '../features/confirm/confirmSlice';
+import loginSlice from '../features/login/loginSlice';
+import videoListsSlice from '../features/videoList/videoListsSlice';
 
 export const store = configureStore({
     reducer: {
         videoUpload:videoUploadSlice,
         video: videoSlice,
         videoPlayer: videoPlayerSlice,
-        [apiSlice.reducerPath]: apiSlice.reducer
+        videoLists: videoListsSlice,
+        notification: notificationSlice,
+        confirm: confirmSlice,
+        ui: uiSlice,
+        login: loginSlice,
     },
-    middleware: getDefaultMiddleware =>
-        getDefaultMiddleware().concat(apiSlice.middleware)
 })
 
 // Infer the `RootState` and `AppDispatch` types from the store itself

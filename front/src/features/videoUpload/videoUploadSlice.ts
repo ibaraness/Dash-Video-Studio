@@ -8,9 +8,12 @@ const initialState: VideoUploadState = {
     transcodePercent: 0,
     chunkNumber: 0,
     totalChunks: 0,
-    videoInputValue: "",
     uploadedStatus: UploadedStatus.Idle,
-    isConnectedToServer: false
+    isConnectedToServer: false,
+    videoName:"",
+    videoDescription:"",
+    file: null,
+    uploadMode: "inactive"
 }
 
 export const videoUploadSlice = createSlice({
@@ -29,32 +32,47 @@ export const videoUploadSlice = createSlice({
         setTotalChunks: (state, action: PayloadAction<number>) => {
             state.totalChunks = action.payload;
         },
-        setVideoInputValue: (state, action: PayloadAction<string>) => {
-            state.videoInputValue = action.payload;
-        },
         setVideoUploadStatus: (state, action: PayloadAction<UploadedStatus>) => {
             state.uploadedStatus = action.payload;
         },
         setIsConectedToServer: (state, action: PayloadAction<boolean>) => {
             state.isConnectedToServer = action.payload;
-        }
+        },
+        setVideoName: (state, action: PayloadAction<string>) => {
+            state.videoName = action.payload;
+        },
+        setVideoDescription: (state, action: PayloadAction<string>) => {
+            state.videoDescription = action.payload;
+        },
+        setVideoFile: (state, action: PayloadAction<File | null>) => {
+            state.file = action.payload;
+        },
+        setUploadMode: (state, action: PayloadAction<"active" | "inactive">) => {
+            state.uploadMode = action.payload;
+        },
     }
 });
 
 export const selectPercent = (state: RootState) => state.videoUpload.percent;
-export const selectVideoInputValue = (state: RootState) => state.videoUpload.videoInputValue;
 export const selectVideoUploadStatus = (state: RootState) => state.videoUpload.uploadedStatus;
 export const selectTranscodePercent = (state: RootState) => state.videoUpload.transcodePercent;
 export const selectIsConnectedToServer = (state: RootState) => state.videoUpload.isConnectedToServer;
+export const selectVideoName = (state: RootState) => state.videoUpload.videoName;
+export const selectVideoDescription = (state: RootState) => state.videoUpload.videoDescription;
+export const selectVideoFile = (state: RootState) => state.videoUpload.file;
+export const selectUploadMode = (state: RootState) => state.videoUpload.uploadMode;
 
 export const {
     setPercent,
     setChunkNumber,
     setTotalChunks,
-    setVideoInputValue,
     setVideoUploadStatus,
     setTranscodePercent,
-    setIsConectedToServer
+    setIsConectedToServer,
+    setVideoName,
+    setVideoDescription,
+    setVideoFile,
+    setUploadMode
 } = videoUploadSlice.actions;
 
 export default videoUploadSlice.reducer;

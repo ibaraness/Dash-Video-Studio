@@ -1,12 +1,12 @@
 import { styled } from '@mui/material/styles';
 import Button from '@mui/material/Button';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
-import { useAppDispatch, useAppSelector } from '../app/hooks';
-import { multipartUpload } from '../services/MultipartUpload';
-import { selectVideoInputValue, setPercent, setVideoInputValue, setVideoUploadStatus } from '../features/videoUpload/videoUploadSlice';
+import { useAppDispatch } from '../app/hooks';
+import { setPercent, setVideoName, setVideoUploadStatus } from '../features/videoUpload/videoUploadSlice';
 import { setVideoId } from '../features/video/videoSlice';
 import { UploadedStatus } from '../features/videoUpload/videoUploadSlice.model';
 import { ProgressPayload } from '../services/MultipartUpload.model';
+import { multipartUpload } from '../services/MultipartUpload';
 
 const VisuallyHiddenInput = styled('input')({
   clip: 'rect(0 0 0 0)',
@@ -28,31 +28,38 @@ export interface InputFileUploadProps {
 
 const InputFileUpload = () => {
 
-  const videoValue = useAppSelector(selectVideoInputValue);
+  // const videoValue = useAppSelector(selectVideoInputValue);
   const dispatch = useAppDispatch();
 
   // const [uploadFile, { isLoading, isError, error }] = useMultiPartUploaderMutation();
 
-  const handleUpload = (event: EventTarget & HTMLInputElement) => {
-    dispatch(setVideoInputValue(event.value));
+  function removeExtension(filename: string) {
+    return (
+      filename.substring(0, filename.lastIndexOf('.')) || filename
+    );
+  }
+
+  const handleUpload = async(event: EventTarget & HTMLInputElement) => {
+    // dispatch(setVideoInputValue(event.value));
     const file = event.files && event.files[0];
+    
     if (file) {
+      dispatch(setVideoName(removeExtension(file.name)));
       dispatch(setPercent(0));
+      // await refreshUserToken();
       multipartUpload(file, (event) => {
         dispatch(setPercent(event.percent));
       },
       (event) => {
         dispatch(setVideoId(event.id))
         dispatch(setVideoUploadStatus(UploadedStatus.Complete));
-        console.log("response", event);
       })
     }
-    // console.log(file);
   }
   return (
     <Button component="label" variant="contained" startIcon={<CloudUploadIcon />}>
       Upload video
-      <VisuallyHiddenInput value={videoValue} onChange={event => handleUpload(event.target)} type="file" />
+      <VisuallyHiddenInput onChange={event => handleUpload(event.target)} type="file" />
     </Button>
   );
 }

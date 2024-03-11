@@ -1,5 +1,5 @@
 import { Box, Typography } from "@mui/material";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { parseSecondsToTimeString } from "./utils/general-utils";
 import eventEmitter from "./utils/eventEmitter";
 import { VideoEvent } from "./hooks/useVideoEventEmitter";
@@ -20,13 +20,20 @@ const VideoTimer = ({ video: videoElement, src }: VideoTimerProps) => {
 
     const dispatch = useAppDispatch();
 
+    const initialized = useRef(false);
+
     useEffect(() => {
-        // Wait until video duration will be clear
-        const totalDuration = videoElement.duration;
-        if (!isNaN(totalDuration)) {
-            dispatch(setVideoDuration(parseSecondsToTimeString(totalDuration)));
+        if(!initialized.current){
+            // Wait until video duration will be clear
+            const totalDuration = videoElement.duration;
+            if (!isNaN(totalDuration)) {
+                initialized.current = true;
+                dispatch(setVideoDuration(parseSecondsToTimeString(totalDuration)));
+            }
         }
     });
+
+    
 
     useEffect(()=>{
         function timeUpdate(){
@@ -41,7 +48,7 @@ const VideoTimer = ({ video: videoElement, src }: VideoTimerProps) => {
 
     return (
         <Box sx={{ px: 2 }}>
-            <Typography sx={{ typography: {sm:'h6', xs:'body1'}}} component={"span"} color={"white"}>
+            <Typography sx={{ typography: {sm:'body2', xs:'body1'}, 'whiteSpace':"nowrap"}} component={"span"} color={"white"}>
                 {parsedTime}
                 / {videoDuration}
             </Typography>

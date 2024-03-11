@@ -24,6 +24,7 @@ interface VideoPlayState {
     isBuffering: boolean;
     autoResolution: string;
     initialized: boolean;
+    settingIsOpen: boolean;
 }
 
 const initialState: VideoPlayState = {
@@ -34,8 +35,8 @@ const initialState: VideoPlayState = {
     progressValue: 0,
     variantTracks: [],
     selectedTrack: {id:-1, title:"Auto"},
-    videoDuration: "00:00",
-    parsedTime: "00:00",
+    videoDuration: "00:00:00",
+    parsedTime: "00:00:00",
     fullScreen:false,
     mute: false,
     volume: 100,
@@ -43,6 +44,7 @@ const initialState: VideoPlayState = {
     isBuffering: false,
     autoResolution: "",
     initialized: false,
+    settingIsOpen: false
 }
 
 export const videoPlayerSlice = createSlice({
@@ -57,14 +59,17 @@ export const videoPlayerSlice = createSlice({
         },
         unloadAll: (state) => {
             state.buffer = 0;
-            state.parsedTime = "00:00";
-            state.videoDuration = "00:00";
+            state.parsedTime = "00:00:00";
+            state.videoDuration = "00:00:00";
             state.variantTracks = [];
             state.loaded = false;
             // state.playing = false;
         },
         setIsSupported: (state, action: PayloadAction<boolean>) => {
             state.isSupported = action.payload;
+        },
+        setSettingIsOpen: (state, action: PayloadAction<boolean>) => {
+            state.settingIsOpen = action.payload;
         },
         setBuffer: (state, action: PayloadAction<number>) => {
             state.buffer = action.payload;
@@ -124,6 +129,7 @@ export const selectShowQualityMenu = (state: RootState) => state.videoPlayer.sho
 export const selectIsBuffering = (state: RootState) => state.videoPlayer.isBuffering;  
 export const selectAutoResolution = (state: RootState) => state.videoPlayer.autoResolution;  
 export const selectInitialized = (state: RootState) => state.videoPlayer.initialized; 
+export const selectSettingIsOpen = (state: RootState) => state.videoPlayer.settingIsOpen; 
 
 export const {
     setPlaying,
@@ -142,7 +148,8 @@ export const {
     setIsBuffering,
     setAutoResolution,
     setInitialized,
-    setVideoDuration
+    setVideoDuration,
+    setSettingIsOpen
 } = videoPlayerSlice.actions
 
 

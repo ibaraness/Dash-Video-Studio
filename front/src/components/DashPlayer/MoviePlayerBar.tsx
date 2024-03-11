@@ -10,7 +10,10 @@ import SettingsIcon from '@mui/icons-material/Settings';
 import QualitySwitcher from "./QualitySwitcher";
 import "shaka-player";
 import { useAppSelector, useAppDispatch } from "../../app/hooks";
-import { selectAutoResolution, selectFullScreen, selectMute, selectPlaying, selectSelectedTrack, selectShowQualityMenu, selectVolume, setFullScreen, setMute, setPlaying, setShowQualityMenu, setVolume } from "../../features/videoPlayer/videoPlayerSlice";
+import { selectAutoResolution, selectFullScreen, selectMute, selectPlaying, selectSelectedTrack, selectSettingIsOpen, selectShowQualityMenu, selectVolume, setFullScreen, setMute, setPlaying, setSettingIsOpen, setShowQualityMenu, setVolume } from "../../features/videoPlayer/videoPlayerSlice";
+import { useEffect } from "react";
+import eventEmitter from "./utils/eventEmitter";
+import { VideoEvent } from "./hooks/useVideoEventEmitter";
 
 export interface MoviePlayerBarProps {
     videoElement: HTMLVideoElement,
@@ -28,6 +31,17 @@ const MoviePlayerBar = ({ videoElement, src, player }: MoviePlayerBarProps) => {
     const selectedTrack = useAppSelector(selectSelectedTrack);
     const showQualityMenu = useAppSelector(selectShowQualityMenu);
     const autoResolution = useAppSelector(selectAutoResolution);
+    const settingIsOpen = useAppSelector(selectSettingIsOpen);
+
+    useEffect(() => {
+        function setPlayingState(){
+            dispatch(setPlaying(false));
+        }
+        const listener = eventEmitter.addListener(VideoEvent.Ended, setPlayingState);
+        return () => {
+            listener.remove();
+        }
+    })
 
     const dispatch = useAppDispatch();
 
@@ -51,6 +65,11 @@ const MoviePlayerBar = ({ videoElement, src, player }: MoviePlayerBarProps) => {
 
     const toggleQualityMenu = () => {
         dispatch(setShowQualityMenu(!showQualityMenu));
+    }
+
+    const toggleSettings = () => {
+        //different behaviour for mobile and destop
+        dispatch(setSettingIsOpen(!settingIsOpen));
     }
 
     return (
@@ -86,11 +105,11 @@ const MoviePlayerBar = ({ videoElement, src, player }: MoviePlayerBarProps) => {
 
 
                 </IconButton>
-                <IconButton sx={{ position: "relative" }} aria-label="settings">
+                <IconButton onClick={() =>  toggleSettings()} sx={{ position: "relative" }} aria-label="settings">
                     <SettingsIcon sx={{ color: "white" }} />
                 </IconButton>
                 <Box sx={{ position: "relative" }}>
-                    <Button sx={{color:"white"}} onClick={() => toggleQualityMenu()} >
+                    <Button sx={{display:{xs:"none", md:"inline-block"}, color:"white"}} onClick={() => toggleQualityMenu()} >
                         {selectedTrack.title}
                         {
                             selectedTrack.id === -1 && `(${autoResolution})`

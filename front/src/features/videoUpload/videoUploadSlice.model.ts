@@ -10,7 +10,10 @@ export interface VideoUploadState {
     transcodePercent: number;
     chunkNumber: number;
     totalChunks: number;
-    videoInputValue: string;
     uploadedStatus: UploadedStatus;
     isConnectedToServer: boolean;
+    videoName: string;
+    videoDescription: string;
+    file: File | null;
+    uploadMode: "active" | "inactive"
 }

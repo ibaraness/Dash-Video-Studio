@@ -22,12 +22,12 @@ export class VideoListener {
     ) { }
 
     @OnEvent(TranscodeEvents.PackageTranscodeDone)
-    async handleVideoPackageAndTranscode({ id, file, fallbackFile, uniqueFolderName }: PackageTranscodeDoneEvent) {
+    async handleVideoPackageAndTranscode({ id, file, fallbackFile, uniqueFolderName, userId }: PackageTranscodeDoneEvent) {
 
         try {
             // Upload all dash files to Storage service (S3)
             const dashFolder = path.dirname(file);
-            const { url } = await this.storageService.uploadFolder(VideoBuckets.Dash, dashFolder, uniqueFolderName);
+            const { url } = await this.storageService.uploadFolder(userId, dashFolder, uniqueFolderName);
 
             // Save dash URL to DB
             const mpfFilename = path.basename(file);

@@ -34,16 +34,18 @@ export class StorageService {
     }
   }
 
-  async createBucket(name: string) {
+  async createBucket(bucketName: string) {
     try {
       this.logger.debug("attempting to create bucket", "StorageService");
-      const exist = await minioClient.bucketExists(name);
+      const exist = await minioClient.bucketExists(bucketName);
       if (exist) {
         return;
       }
-      await minioClient.makeBucket(name, 'us-east-1');
-      const policy = annonymousReadPolicy(name);
-      await minioClient.setBucketPolicy(name, policy);
+      await minioClient.makeBucket(bucketName, 'us-east-1');
+
+      const policy = annonymousReadPolicy(bucketName);
+      await minioClient.setBucketPolicy(bucketName, policy);
+
     } catch (e) {
       this.logger.error("Error creating bucket", e, "StorageService");
     }
@@ -58,6 +60,7 @@ export class StorageService {
 
   async uploadFile(dashBucket: string, filename: string, filepath: string): Promise<UploadFileResponse> {
     try {
+      await this.createBucket(dashBucket);
       const res = await minioClient.fPutObject(dashBucket, filename, filepath);
       const url = `${this.getEndPoint()}/${dashBucket}/${filename}`;
       this.logger.debug(`uploadFile() URL:${url}`, StorageService.name);
@@ -68,7 +71,56 @@ export class StorageService {
     } catch (e) {
       this.logger.error("Error uploading file", e, "StorageService");
     }
+  }
 
+  async deleteAllListOnBucket(bucket: string) {
+    const objectsList = [];
+    // List all object paths in bucket my-bucketname.
+    const objectsStream = minioClient.listObjects(bucket, '', true)
+
+    objectsStream.on('data', function (obj) {
+      objectsList.push(obj.name)
+    });
+    objectsStream.on('error', (e) => {
+      this.logger.error("Error delete files", JSON.stringify(e), StorageService.name);
+    });
+
+    objectsStream.on('end', () => {
+      minioClient.removeObjects(bucket, objectsList, (e) => {
+        if (e) {
+          this.logger.error("Unable to remove Objects", JSON.stringify(e), StorageService.name);
+          throw new Error("Unable to remove Objects");
+          return;
+        }
+        this.logger.log('Removed the objects successfully', StorageService.name);
+      })
+    })
+  }
+
+  async deleteFiles(bucket: string, folderName: string) {
+    const objectsList = []
+
+    // List all object paths in bucket my-bucketname.
+    const objectsStream = minioClient.listObjects(bucket, folderName, true)
+
+    objectsStream.on('data', function (obj) {
+      objectsList.push(obj.name)
+    })
+
+    objectsStream.on('error', (e) => {
+      this.logger.error("Error delete files", JSON.stringify(e), StorageService.name);
+    })
+
+    objectsStream.on('end', () => {
+      minioClient.removeObjects(bucket, objectsList, (e) => {
+        if (e) {
+          this.logger.error("Unable to remove Objects", JSON.stringify(e), StorageService.name);
+          throw new Error("Unable to remove Objects");
+          return;
+        }
+        this.logger.log('Removed the objects successfully', StorageService.name);
+      })
+    })
   }
 
   async uploadFolder(dashBucket: string, folderPath: string, outputFolderName?: string): Promise<{ url: string }> {
@@ -80,6 +132,7 @@ export class StorageService {
     const uniquePath = outputFolderName ? outputFolderName : uuidv4();
 
     if (files) {
+      await this.createBucket(dashBucket);
       for (let i = 0; i < files.length; i++) {
         const enrichedPath = path.join(uniquePath, files[i]);
         const filePath = path.join(folderPath, files[i]);
@@ -94,6 +147,7 @@ export class StorageService {
   }
 
   async uploadFileWithFolder(dashBucket: string, folderName: string, filename: string, filepath: string): Promise<UploadFileResponse> {
+    await this.createBucket(dashBucket);
     const filenameWithFolder = `${folderName}/${filename}`;
     const res = await this.uploadFile(dashBucket, filenameWithFolder, filepath);
     const url = `${this.getEndPoint()}/${dashBucket}/${folderName}/${filename}`;
@@ -104,6 +158,7 @@ export class StorageService {
   }
 
   async uploadWithUniquePath(dashBucket: string, filename: string, filepath: string): Promise<UploadedObjectInfo> {
+    await this.createBucket(dashBucket);
     const uniquePath = this.getUniqueFilePath(filename);
     return this.uploadFile(dashBucket, uniquePath, filepath)
   }

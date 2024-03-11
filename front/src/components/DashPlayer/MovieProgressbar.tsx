@@ -27,6 +27,9 @@ const MovieProgressbar = ({ player, videoElement, src }: MovieProgressbarProps) 
         function updateBufferHandler() {
             try {
                 const bufferRange = player.getBufferedInfo().total[0];
+                if(!bufferRange || !bufferRange.end){
+                    return;
+                }
                 const percentSlice = 100 / duration.current;
                 dispatch(setBuffer(Math.round(bufferRange.end * percentSlice)))
             } catch (e) {
@@ -72,7 +75,6 @@ const MovieProgressbar = ({ player, videoElement, src }: MovieProgressbarProps) 
             const width = parentRect.width;
             const position = event.clientX - left;
             const percent = position * (100/width);
-            console.log("handleTrackClick", percent)
             setPosition(percent);
         }
     }

@@ -11,6 +11,7 @@ import useShakaABR from './hooks/useShakaABR';
 import eventEmitter from './utils/eventEmitter';
 import useVideoEventEmitter, { VideoEvent } from './hooks/useVideoEventEmitter';
 import VideoPlayerFrame from './VideoPlayerFrame';
+import SettingMenu from './settingMenu/SettingMenu';
 
 const ActualDashPlayer = () => {
     // Dash mpd src for streaming video (Later will come as a property - detach component from app state)
@@ -50,6 +51,9 @@ const ActualDashPlayer = () => {
     useEffect(() => {
         const loadDashVideo = async () => {
             try {
+                if(!player.getMediaElement()){
+                    await player.attach(videoElement);
+                }
                 // Load MPD stream manifest file of video
                 await player.load(mpdSrc);
                 dispatch(setLoaded(true));
@@ -60,6 +64,11 @@ const ActualDashPlayer = () => {
             }
         }
 
+        const unloadVideo = async () => {
+            await player.unload();
+            await player.attach(videoElement);
+        }
+
         // updateFrameAspectRatio(videoElement);
         dispatch(unloadAll());
         dispatch(setSelectedTrack({ id: -1, title: "auto" }));
@@ -68,6 +77,9 @@ const ActualDashPlayer = () => {
             // videoElement.setAttribute("controls", "true");
             videoElement.setAttribute("autoplay", "true");
             loadDashVideo();
+        } 
+        else if(!mpdSrc && player) {
+            unloadVideo();
         }
     }, [mpdSrc, player, videoElement, dispatch]);
 
@@ -178,6 +190,7 @@ const ActualDashPlayer = () => {
 
                 </Box>
             }
+            <SettingMenu player={player} src={mpdSrc} />
         </VideoPlayerFrame>
     )
 }

@@ -1,10 +1,15 @@
-// TODO: Add support for hours
 // Parse seconds number (int or float) to a formated time string
 export const parseSecondsToTimeString = (duration: number) => {
-    const rest = duration % 60;
-    const minutes = (duration - rest) / 60;
-    const seconds = Math.trunc(rest);
-    const time = `${minutes < 10 ? '0' : ''}${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+    const secondsRest = duration % 60;
+    let minutes = (duration - secondsRest) / 60;
+    const seconds = Math.trunc(secondsRest);
+    let hours = 0;
+    if (minutes > 59) {
+        const minutesRest = minutes % 60;
+        hours = (minutes - minutesRest) / 60;
+        minutes = minutesRest;
+    }
+    const time = `${hours < 10 ? '0' : ''}${hours}:${minutes < 10 ? '0' : ''}${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
     return time;
 }
 

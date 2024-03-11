@@ -1,5 +1,5 @@
 import { ChunkSavedStatus } from "./video-upload.model";
-import { IsInt, IsString, IsNumberString, MinLength } from 'class-validator';
+import { IsInt, IsString, IsNumberString, MinLength, MaxLength } from 'class-validator';
 
 export class VideoUploadDTO {
     @IsNumberString()
@@ -16,6 +16,16 @@ export class VideoUploadDTO {
     uploadId: string
 }
 
+export class VideoUpdateDTO {
+    @IsString()
+    @MaxLength(70)
+    @MinLength(1)
+    name: string;
+    
+    @IsString()
+    description: string;
+}
+
 export class VideoUploadJob extends VideoUploadDTO {
     file: Express.Multer.File;
 }
@@ -27,6 +37,7 @@ export class BatchTranscodeDTO {
 export class UplodedVideoData {
     message: string;
     status: ChunkSavedStatus;
+    userId: string;
     videoPath: string;
 }
 
@@ -42,11 +53,12 @@ export interface VideoPublic {
     lastChangedDateTime: Date;
 }
 
-export const UplodedVideoDataCreator = (message: string, status: ChunkSavedStatus, videoPath: string) => {
+export const UplodedVideoDataCreator = (message: string, status: ChunkSavedStatus, userId: string, videoPath: string) => {
     const uplodedVideoData = new UplodedVideoData();
     uplodedVideoData.message = message;
     uplodedVideoData.status = status;
     uplodedVideoData.videoPath = videoPath;
+    uplodedVideoData.userId = userId;
     return uplodedVideoData;
 }
 

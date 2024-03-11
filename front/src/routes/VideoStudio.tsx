@@ -1,0 +1,165 @@
+import { Grid, Box, Paper, Button, Typography, Stack } from "@mui/material"
+import { selectPercent, selectTranscodePercent, selectUploadMode, setIsConectedToServer, setPercent, setTranscodePercent, setUploadMode, setVideoInputValue } from "../features/videoUpload/videoUploadSlice"
+import LinearProgressWithLabel from "../components/LinearProgressWithLabel"
+import InputFileUpload from "../components/UploadButton"
+import { VideoList } from "../components/videoList/VideoList"
+import { useAppDispatch, useAppSelector } from "../app/hooks"
+import DashPlayer from "../components/DashPlayer/DashPlayer"
+import { useEffect, useRef } from "react"
+import { socket } from "../sockets/socket"
+import { setVideo, setVideoMode } from "../features/video/videoSlice"
+import VideoDetails from "../components/videoDetails/VideoDetails"
+import { VideoResponse } from "../features/videoList/videoListSlice.model"
+import eventEmitter from "../components/DashPlayer/utils/eventEmitter"
+import { selectIsMobile, selectTopMenuHeight, selectTopOffset, setTopOffset } from "../features/ui/uiSlice"
+import { addAllVideos } from "../features/videoList/videoListsSlice"
+import { getAllVideos } from "../services/restApi/restAPI"
+
+interface TranscodeResponse {
+    status: string;
+    percentage: number;
+    size: number;
+}
+
+const VideoStudio = () => {
+    const percent = useAppSelector(selectPercent);
+    const transcodePercentage = useAppSelector(selectTranscodePercent);
+    const uploadMode = useAppSelector(selectUploadMode);
+    const playerContainer = useRef<HTMLDivElement>(null);
+    const topOffset = useAppSelector(selectTopOffset);
+    const isMobile = useAppSelector(selectIsMobile);
+    const dispatch = useAppDispatch();
+
+    const topMenuOffset = useAppSelector(selectTopMenuHeight);
+
+    useEffect(() => {
+        socket.connect();
+        return () =>{
+            socket.disconnect();
+        }
+    },[]);
+
+    useEffect(() => {
+        function onConnect() {
+            dispatch(setIsConectedToServer(true));
+        }
+
+        function onDisconnect() {
+            dispatch(setIsConectedToServer(false));
+        }
+
+        socket.on('connect', onConnect);
+        socket.on('disconnect', onDisconnect);
+        return ()=>{
+            socket.off('connect', onConnect);
+            socket.off('disconnect', onDisconnect);
+        }
+    })
+
+
+
+    useEffect(() => {
+        const OnPackageTrascode = (value: TranscodeResponse) => {
+            dispatch(setTranscodePercent(+value.percentage));
+        }
+
+        const onVideoUpdated = async (data: VideoResponse) => {
+            console.log("videoUpdated")
+            async function loadVideos() {
+                console.log("loadVideos")
+                const res = await getAllVideos();
+                if (res.isError) {
+                    console.error(res.errorMessage);
+                    return;
+                }
+                dispatch(addAllVideos(res.data!));
+            }
+            await loadVideos();
+            dispatch(setUploadMode("inactive"));
+            dispatch(setVideo(data));
+            dispatch(setVideoMode("edit"));
+        }
+
+        socket.on('packageTranscode', OnPackageTrascode);
+        socket.on('videoUpdated', onVideoUpdated);
+
+        return () => {
+            socket.off('packageTranscode', OnPackageTrascode);
+            socket.off('videoUpdated', onVideoUpdated);
+        };
+    },[dispatch]);
+
+    const handleClearForm = () => {
+        dispatch(setPercent(0));
+        dispatch(setUploadMode("inactive"));
+    }
+
+    useEffect(() => {
+        if (playerContainer.current && topMenuOffset == 0) {
+            dispatch(setTopOffset(playerContainer.current.offsetHeight));
+        }
+        function handleResize() {
+            if (playerContainer.current) {
+                dispatch(setTopOffset(playerContainer.current.offsetHeight));
+            }
+        }
+        const listener = eventEmitter.addListener("resize", handleResize);
+        return () => {
+            listener.remove();
+        }
+    }, [playerContainer, dispatch, topMenuOffset])
+
+    return (
+        <Grid sx={{pt:`${isMobile && (topOffset + topMenuOffset) + 'px' || 0}`}} container>
+            <Grid item md={8} xs={12}>
+                <Box ref={playerContainer} sx={{
+                    mb: 4,
+                    position: { xs: "fixed", md: "static" },
+                    top: topMenuOffset + "px",
+                    left: 0,
+                    right: 0,
+                    zIndex: { xs: "9", md: "1" }
+                }} component={"div"}>
+                    {/* Dash Player */}
+                    {
+                        uploadMode === "inactive"
+                            ? <Paper sx={{
+                                px: { md: 4, xs: 0 },
+                                py: { md: 3, xs: 0 },
+                                mb: 2,
+
+                            }}>
+                                <Stack >
+                                    <DashPlayer></DashPlayer>
+                                    <VideoDetails></VideoDetails>
+                                </Stack>
+                            </Paper>
+                            : <Paper>
+                                <Box sx={{ px: 4, py: 2, mb: 2 }}>
+                                    <Typography variant="h6" component="h2" sx={{ mb: 2 }}>
+                                        Upload original video
+                                    </Typography>
+                                    <Stack sx={{ mt: 4 }} direction={"row"} spacing={2}>
+                                        <InputFileUpload />
+                                        <Button variant="outlined" onClick={() => handleClearForm()}>Cancel</Button>
+                                    </Stack>
+                                    <Box sx={{ width: '100%', mt: 4 }}>
+                                        <LinearProgressWithLabel value={percent} />
+                                    </Box>
+                                    <Box sx={{ py: 2, mb: 2 }}>
+                                        Dash Transcode progress
+                                        <LinearProgressWithLabel color="secondary" value={transcodePercentage ?? 0} />
+                                    </Box>
+                                </Box>
+                            </Paper>
+                    }
+                </Box>
+            </Grid>
+            <Grid item md={4} xs={12}>
+                <VideoList></VideoList>
+            </Grid>
+        </Grid>
+    )
+}
+
+export default VideoStudio;
