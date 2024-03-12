@@ -17,9 +17,7 @@ import {
 } from "react-router-dom";
 import ErrorPage from './error-page.tsx';
 import LoginPage from './routes/LoginPage.tsx';
-// import VideoStudio from './routes/VideoStudio.tsx';
 import ProtectedRoute from './routes/ProtectedRoute.tsx';
-// import SignUp from './routes/SignUp.tsx';
 
 const router = createBrowserRouter([
   {
