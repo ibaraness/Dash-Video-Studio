@@ -1,3 +1,4 @@
+// MUI direct checked
 import * as React from 'react';
 import Avatar from '@mui/material/Avatar';
 import Button from '@mui/material/Button';
@@ -7,7 +8,8 @@ import Grid from '@mui/material/Grid';
 import Box from '@mui/material/Box';
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import Typography from '@mui/material/Typography';
-import { Alert, Paper } from '@mui/material';
+import Alert from '@mui/material/Alert';
+import Paper from '@mui/material/Paper';
 import { useAppDispatch, useAppSelector } from '../app/hooks';
 import { selectIsLoggedIn, selectRefreshAttempts, setIsLoggedIn, setRefreshAttempts } from '../features/login/loginSlice';
 import { useNavigate, Link as RouterLink } from "react-router-dom";

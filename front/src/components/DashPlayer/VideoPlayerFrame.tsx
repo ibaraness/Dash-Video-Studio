@@ -1,10 +1,11 @@
+// MUI direct checked
 import { PropsWithChildren, useCallback, useEffect, useRef } from "react";
 import VideoLoaderAnimation from "./VideoLoaderAnimation";
 import { useAppDispatch, useAppSelector } from "../../app/hooks";
 import { selectFullScreen, selectPlaying, setFullScreen, setPlaying } from "../../features/videoPlayer/videoPlayerSlice";
 import { AspectRatioAlg, setFrameAspectRatio } from "./utils/general-utils";
 import useFullScreenEvent from "./hooks/useFullScreenEvent";
-import { Box } from "@mui/material";
+import Box from "@mui/material/Box";
 import eventEmitter from "./utils/eventEmitter";
 import useThrottle from "./hooks/useThrottle";
 import MobileMuteButton from "./MobileMuteButton";

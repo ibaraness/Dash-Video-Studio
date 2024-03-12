@@ -1,4 +1,11 @@
-import { Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, Button } from "@mui/material"
+// MUI direct checked
+import Dialog from "@mui/material/Dialog";
+import DialogTitle from "@mui/material/DialogTitle";
+import DialogContent from "@mui/material/DialogContent";
+import DialogContentText from "@mui/material/DialogContentText";
+import DialogActions from "@mui/material/DialogActions";
+import Button from "@mui/material/Button";
+
 import { useAppDispatch, useAppSelector } from "../../app/hooks";
 import { selectConfirmAction, selectConfirmCallId, selectConfirmMessage, selectConfirmTitle, selectIsConfirmOpen, setConfirmCallId, setConfirmOpen } from "../../features/confirm/confirmSlice";
 import eventEmitter from "../DashPlayer/utils/eventEmitter";

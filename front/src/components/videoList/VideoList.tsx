@@ -1,4 +1,8 @@
-import { Box, Paper, Skeleton } from "@mui/material";
+// MUI direct checked
+import Box from "@mui/material/Box";
+import Paper from "@mui/material/Paper";
+import Skeleton from "@mui/material/Skeleton";
+
 import { useAppDispatch, useAppSelector } from "../../app/hooks";
 import { VideoCard } from "./VideoCard";
 import { useEffect, useRef } from "react";

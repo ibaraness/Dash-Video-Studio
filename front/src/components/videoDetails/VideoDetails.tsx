@@ -1,4 +1,9 @@
-import { Box, Stack, Typography, Button } from "@mui/material";
+// MUI direct checked
+import Box from "@mui/material/Box";
+import Stack from "@mui/material/Stack";
+import Typography from "@mui/material/Typography";
+import Button from "@mui/material/Button";
+
 import EditIcon from '@mui/icons-material/Edit';
 import { selectVideoDescription, selectVideoName, selectVideoMode, setVideoMode, selectVideoId, clearVideoData } from "../../features/video/videoSlice";
 import { useAppDispatch, useAppSelector } from "../../app/hooks";

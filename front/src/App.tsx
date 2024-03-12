@@ -1,4 +1,15 @@
-import { Typography, Container, AppBar, IconButton, Toolbar, CssBaseline, Menu, MenuItem, Box, Stack } from '@mui/material';
+// MUI direct checked
+import Typography from '@mui/material/Typography';
+import Container from '@mui/material/Container';
+import AppBar from '@mui/material/AppBar';
+import IconButton from '@mui/material/IconButton';
+import Toolbar from '@mui/material/Toolbar';
+import CssBaseline from '@mui/material/CssBaseline';
+import Menu from '@mui/material/Menu';
+import MenuItem from '@mui/material/MenuItem';
+import Box from '@mui/material/Box';
+import Stack from '@mui/material/Stack';
+
 import { blue } from '@mui/material/colors';
 import React, { useEffect, useRef } from 'react';
 import NotificationSnack from './components/notifications/NotificationSnack';
@@ -12,7 +23,6 @@ import AccountCircle from '@mui/icons-material/AccountCircle';
 import { selectIsLoggedIn, setIsLoggedIn } from './features/login/loginSlice';
 import { logoutUser } from './services/restApi/restAPI';
 import { setMute, setVolume } from './features/videoPlayer/videoPlayerSlice';
-
 
 function App() {
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);

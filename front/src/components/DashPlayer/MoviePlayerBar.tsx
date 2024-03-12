@@ -1,4 +1,10 @@
-import { Box, Button, Grid, IconButton, Slider } from "@mui/material";
+// MUI direct checked
+import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
+import Grid from "@mui/material/Grid";
+import IconButton from "@mui/material/IconButton";
+import Slider from "@mui/material/Slider";
+
 import VideoTimer from "./VideoTimer";
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import PauseIcon from '@mui/icons-material/Pause';

@@ -1,4 +1,5 @@
-import { Box } from "@mui/material";
+// MUI direct checked
+import Box from "@mui/material/Box";
 import { useEffect } from "react";
 import DashPlayerQualityMenu from "./DashPlayerQualityMenu";
 import { selectVariantTracks, setVariantTracks } from "../../features/videoPlayer/videoPlayerSlice";

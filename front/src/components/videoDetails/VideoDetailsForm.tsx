@@ -1,4 +1,10 @@
-import { Stack, TextField, Button, Box, CircularProgress } from "@mui/material";
+// MUI direct checked
+import Stack from "@mui/material/Stack";
+import TextField from "@mui/material/TextField";
+import Button from "@mui/material/Button";
+import Box from "@mui/material/Box";
+import CircularProgress from "@mui/material/CircularProgress";
+
 import { selectVideoDescription, selectVideoId, selectVideoMode, selectVideoName, setVideoDescription, setVideoMode, setVideoName } from "../../features/video/videoSlice";
 import { useAppDispatch, useAppSelector } from "../../app/hooks";
 import { setMessage, setOpen, setSeverity } from "../../features/notification/notificationSlice";

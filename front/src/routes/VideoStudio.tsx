@@ -1,4 +1,11 @@
-import { Grid, Box, Paper, Button, Typography, Stack } from "@mui/material"
+// MUI direct checked
+import Grid from "@mui/material/Grid"
+import Box from "@mui/material/Box"
+import Paper from "@mui/material/Paper"
+import Button from "@mui/material/Button"
+import Typography from "@mui/material/Typography"
+import Stack from "@mui/material/Stack"
+
 import { selectPercent, selectTranscodePercent, selectUploadMode, setIsConectedToServer, setPercent, setTranscodePercent, setUploadMode } from "../features/videoUpload/videoUploadSlice"
 import LinearProgressWithLabel from "../components/LinearProgressWithLabel"
 import InputFileUpload from "../components/UploadButton"
@@ -21,7 +28,7 @@ interface TranscodeResponse {
     size: number;
 }
 
-const VideoStudio = () => {
+export const VideoStudio = () => {
     const percent = useAppSelector(selectPercent);
     const transcodePercentage = useAppSelector(selectTranscodePercent);
     const uploadMode = useAppSelector(selectUploadMode);
@@ -169,5 +176,3 @@ const VideoStudio = () => {
         </Grid>
     )
 }
-
-export default VideoStudio;

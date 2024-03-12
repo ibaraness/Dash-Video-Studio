@@ -1,4 +1,5 @@
-import { IconButton } from "@mui/material";
+// MUI direct checked
+import IconButton from "@mui/material/IconButton";
 import { useAppSelector, useAppDispatch } from "../../app/hooks";
 import { selectActiveBreakpoint } from "../../features/ui/uiSlice";
 import { selectMute, setMute } from "../../features/videoPlayer/videoPlayerSlice";

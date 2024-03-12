@@ -1,8 +1,9 @@
+// MUI direct checked
 import 'vimond-replay/index.css';
 import { useAppDispatch, useAppSelector } from '../../app/hooks';
 import { selectDashURL } from '../../features/video/videoSlice';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Box } from '@mui/material';
+import Box from '@mui/material/Box';
 import useShakaVideoPlayer from './hooks/useShakaVideoPlayer';
 import MovieProgressbar from './MovieProgressbar';
 import MoviePlayerBar from './MoviePlayerBar';

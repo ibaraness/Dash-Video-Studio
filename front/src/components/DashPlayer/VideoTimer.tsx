@@ -1,4 +1,7 @@
-import { Box, Typography } from "@mui/material";
+// MUI direct checked
+import Box from "@mui/material/Box";
+import Typography from "@mui/material/Typography";
+
 import { useEffect, useRef } from "react";
 import { parseSecondsToTimeString } from "./utils/general-utils";
 import eventEmitter from "./utils/eventEmitter";

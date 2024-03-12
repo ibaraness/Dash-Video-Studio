@@ -1,3 +1,4 @@
+// MUI direct checked
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App.tsx';
@@ -5,7 +6,8 @@ import '@fontsource/roboto/300.css';
 import '@fontsource/roboto/400.css';
 import '@fontsource/roboto/500.css';
 import '@fontsource/roboto/700.css';
-import { ThemeProvider, CssBaseline } from '@mui/material';
+import { ThemeProvider } from '@mui/material';
+import CssBaseline from '@mui/material/CssBaseline';
 import theme from './theme.ts';
 import { Provider } from 'react-redux';
 import { store } from './store/store.ts';
@@ -15,9 +17,9 @@ import {
 } from "react-router-dom";
 import ErrorPage from './error-page.tsx';
 import LoginPage from './routes/LoginPage.tsx';
-import VideoStudio from './routes/VideoStudio.tsx';
+// import VideoStudio from './routes/VideoStudio.tsx';
 import ProtectedRoute from './routes/ProtectedRoute.tsx';
-import SignUp from './routes/SignUp.tsx';
+// import SignUp from './routes/SignUp.tsx';
 
 const router = createBrowserRouter([
   {
@@ -30,8 +32,11 @@ const router = createBrowserRouter([
         element: <ProtectedRoute />,
         children: [
           {
-            path:'/',
-            element: <VideoStudio></VideoStudio>
+            index: true,
+            async lazy() {
+              let {VideoStudio}  = await import("./routes/VideoStudio.tsx");
+              return { Component: VideoStudio };
+            }
           }
         ]
       },
@@ -41,11 +46,13 @@ const router = createBrowserRouter([
       },
       {
         path: 'sign-up',
-        element: <SignUp />
+        async lazy(){
+          let {SignUp}  = await import("./routes/SignUp.tsx");
+              return { Component: SignUp };
+        }
       }
     ]
   },
-
 ]);
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
