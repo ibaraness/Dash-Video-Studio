@@ -12,9 +12,14 @@ export const VideoList = () => {
     const videos = useAppSelector(selectAllVideos)
     const loadingState = useAppSelector(selectListLoadingState);
     const initialized = useRef(false);
-    // const [isLoading, setIsLoading] = useState(false);
+    // const [isLoading, setIsLoading] = useState(false);    
 
     useEffect(() => {
+        const failureNotification = (message = "Something went wrong!") => {
+            dispatch(setMessage(message));
+            dispatch(setSeverity("error"));
+            dispatch(setOpen(true));
+        }
         async function loadVideos() {
             try {
                 const res = await dispatch(fetchVideos()).unwrap();
@@ -36,11 +41,7 @@ export const VideoList = () => {
         // State to trigger change in initialized
     }, [videos, dispatch]);
 
-    const failureNotification = (message = "Something went wrong!") => {
-        dispatch(setMessage(message));
-        dispatch(setSeverity("error"));
-        dispatch(setOpen(true));
-    }
+    
 
     const cards = videos.map(videoResponse => {
         return (

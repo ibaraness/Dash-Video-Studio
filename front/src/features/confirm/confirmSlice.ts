@@ -5,7 +5,7 @@ interface ConfirmState {
     open: boolean;
     message: string;
     title: string;
-    callId: number;
+    callId: string;
     action: string;
 }
 
@@ -13,7 +13,7 @@ const initialState: ConfirmState = {
     open: false,
     message: "This operation is ireversabe, make sure you are ready for that",
     title: "Are you sure you want to do this terrible action? ",
-    callId:0,
+    callId:"",
     action:""
 }
 
@@ -30,7 +30,7 @@ export const confirmSlice = createSlice({
         setConfirmTitle: (state, action: PayloadAction<string>) => {
             state.title = action.payload;
         },
-        setConfirmCallId: (state, action: PayloadAction<number>) => {
+        setConfirmCallId: (state, action: PayloadAction<string>) => {
             state.callId = action.payload;
         },
         setConfirmAction: (state, action: PayloadAction<string>) => {

@@ -23,7 +23,7 @@ const ConfirmDialog = () => {
         const answer: ConfirmResponse = {id: callId, action, approved};
         eventEmitter.emit('confirmAnswer', answer);
         dispatch(setConfirmOpen(false));
-        dispatch(setConfirmCallId(0));
+        dispatch(setConfirmCallId(""));
     }
 
     return (
