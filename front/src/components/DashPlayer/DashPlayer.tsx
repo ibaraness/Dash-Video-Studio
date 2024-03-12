@@ -1,7 +1,6 @@
 import 'vimond-replay/index.css';
 import { useAppDispatch, useAppSelector } from '../../app/hooks';
 import { selectInitialized, selectIsSupported, setInitialized, setIsSupported } from '../../features/videoPlayer/videoPlayerSlice';
-import 'shaka-player';
 import ActualDashPlayer from './ActualDashPlayer';
 
 const DashPlayer = () => {

@@ -1,4 +1,3 @@
-import "shaka-player";
 import { SelectedTrackInfo } from "../../../features/videoPlayer/videoPlayerSlice";
 import { useEffect } from "react";
 

@@ -1,6 +1,5 @@
 import { Box } from "@mui/material";
 import { useEffect } from "react";
-import "shaka-player";
 import DashPlayerQualityMenu from "./DashPlayerQualityMenu";
 import { selectVariantTracks, setVariantTracks } from "../../features/videoPlayer/videoPlayerSlice";
 import { useAppDispatch, useAppSelector } from "../../app/hooks";

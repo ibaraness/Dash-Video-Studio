@@ -1,6 +1,5 @@
 import { Box } from "@mui/material";
 import { useRef, useEffect } from "react";
-import "shaka-player";
 import { selectBuffer, selectProgressValue, setBuffer, setProgressValue } from "../../features/videoPlayer/videoPlayerSlice";
 import { useAppDispatch, useAppSelector } from "../../app/hooks";
 import eventEmitter from "./utils/eventEmitter";

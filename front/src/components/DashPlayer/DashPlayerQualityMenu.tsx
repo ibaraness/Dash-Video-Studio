@@ -1,6 +1,5 @@
 import { ListItem, ListItemButton, ListItemIcon, ListItemText, Paper, List } from "@mui/material";
 import CheckIcon from '@mui/icons-material/Check';
-import "shaka-player";
 import { useAppSelector, useAppDispatch } from "../../app/hooks";
 import { selectSelectedTrack, setSelectedTrack, setShowQualityMenu } from "../../features/videoPlayer/videoPlayerSlice";
 

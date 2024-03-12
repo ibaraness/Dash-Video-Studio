@@ -1,5 +1,4 @@
 import { useRef, useEffect } from "react";
-import 'shaka-player';
 
 export default function useShakaVideoPlayer(uniquId: number){
     const isSupportedBrowser = useRef<boolean>(true);

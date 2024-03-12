@@ -20,6 +20,6 @@
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["src"],
+  "include": ["src", "./node_modules/.pnpm/shaka-player@4.7.9/node_modules/shaka-player/dist/"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }

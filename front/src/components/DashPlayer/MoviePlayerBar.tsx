@@ -8,7 +8,6 @@ import FullscreenIcon from '@mui/icons-material/Fullscreen';
 import FullscreenExitIcon from '@mui/icons-material/FullscreenExit';
 import SettingsIcon from '@mui/icons-material/Settings';
 import QualitySwitcher from "./QualitySwitcher";
-import "shaka-player";
 import { useAppSelector, useAppDispatch } from "../../app/hooks";
 import { selectAutoResolution, selectFullScreen, selectMute, selectPlaying, selectSelectedTrack, selectSettingIsOpen, selectShowQualityMenu, selectVolume, setFullScreen, setMute, setPlaying, setSettingIsOpen, setShowQualityMenu, setVolume } from "../../features/videoPlayer/videoPlayerSlice";
 import { useEffect } from "react";
