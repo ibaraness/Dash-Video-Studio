@@ -1,8 +1,10 @@
+// MUI direct checked
+// @ts-nocheck
 import 'vimond-replay/index.css';
 import { useAppDispatch, useAppSelector } from '../../app/hooks';
 import { selectDashURL } from '../../features/video/videoSlice';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Box } from '@mui/material';
+import Box from '@mui/material/Box';
 import useShakaVideoPlayer from './hooks/useShakaVideoPlayer';
 import MovieProgressbar from './MovieProgressbar';
 import MoviePlayerBar from './MoviePlayerBar';
@@ -83,12 +85,14 @@ const ActualDashPlayer = () => {
         }
     }, [mpdSrc, player, videoElement, dispatch]);
 
-    // Toggle auto ABR and set auto bitrate or user select 
-    useShakaABR(selectedTrack, player);
+    // Toggle auto ABR and set auto bitrate or user select
+    if(mpdSrc){
+      useShakaABR(selectedTrack, player);  
+    } 
 
     useEffect(() => {
         function updateAutoABR() {
-            if (videoElement.readyState === 4) {
+            if (videoElement.readyState === 4 && mpdSrc) {
                 if (selectedTrack.id === -1) {
                     const active = player.getVariantTracks().find((track) => track.active);
                     const resolution = Math.min(active?.width || 0, active?.height || 0);
@@ -105,13 +109,12 @@ const ActualDashPlayer = () => {
 
     // Toggle video player play by state
     useEffect(() => {
-        if (playing) {
+        if (playing && mpdSrc) {
             videoElement?.play();
-
         } else {
             videoElement?.pause();
         }
-    }, [playing, videoElement]);
+    }, [playing, videoElement, mpdSrc]);
 
     useEffect(() => {
         videoElement.muted = mute;

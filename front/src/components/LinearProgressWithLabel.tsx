@@ -1,4 +1,8 @@
-import { Typography, Box, LinearProgressProps, LinearProgress } from '@mui/material';
+// MUI direct checked
+import Typography from '@mui/material/Typography';
+import Box from '@mui/material/Box';
+import {LinearProgressProps} from '@mui/material/LinearProgress';
+import LinearProgress from '@mui/material/LinearProgress';
 
 const LinearProgressWithLabel = (props: LinearProgressProps & { value: number }) => {
     return (

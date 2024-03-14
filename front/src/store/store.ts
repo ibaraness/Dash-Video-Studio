@@ -7,6 +7,7 @@ import uiSlice from '../features/ui/uiSlice';
 import confirmSlice from '../features/confirm/confirmSlice';
 import loginSlice from '../features/login/loginSlice';
 import videoListsSlice from '../features/videoList/videoListsSlice';
+import userSlice from '../features/user/userSlice';
 
 export const store = configureStore({
     reducer: {
@@ -18,6 +19,7 @@ export const store = configureStore({
         confirm: confirmSlice,
         ui: uiSlice,
         login: loginSlice,
+        user: userSlice
     },
 })
 

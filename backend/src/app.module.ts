@@ -14,7 +14,6 @@ import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { APP_GUARD } from '@nestjs/core';
 import { AuthGuard } from './auth/auth.guard';
-import { FrontendMiddleware } from './common/middlewares/frontend.middleware';
 
 const modulesImport = [
   ConfigModule.forRoot(),
@@ -49,21 +48,6 @@ const modulesImport = [
   AuthModule,
   UsersModule
 ];
-
-// if(process.env.NODE_ENV !== "dev"){
-//   modulesImport.push(
-//     ServeStaticModule.forRoot({
-//       rootPath: join(__dirname, '../..', 'front/dist/'),
-//       serveRoot: '/'
-//     })
-//   );
-//   modulesImport.push(
-//     ServeStaticModule.forRoot({
-//       rootPath: join(__dirname, '../..', 'front/dist/'),
-//       serveRoot: '/login'
-//     })
-//   );
-// }
 
 @Module({
   imports: modulesImport,

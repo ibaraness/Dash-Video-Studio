@@ -1,4 +1,10 @@
-import { Card, CardActionArea, CardMedia, CardContent, Typography } from "@mui/material";
+// MUI direct checked
+import Card from "@mui/material/Card";
+import CardActionArea from "@mui/material/CardActionArea";
+import CardMedia from "@mui/material/CardMedia";
+import CardContent from "@mui/material/CardContent";
+import Typography from "@mui/material/Typography";
+
 import { useMemo } from "react";
 import { useAppDispatch } from "../../app/hooks";
 import { clearVideoData, setVideo } from "../../features/video/videoSlice";
@@ -41,7 +47,7 @@ export const VideoCard = ({ video }: { video: VideoResponse }) => {
                         textOverflow={"ellipsis"}
                         textTransform={"capitalize"}
                         component="div">
-                        {`${video.name} (${video.id})`}
+                        {`${video.name}`}
                     </Typography>
                     <Typography
                         position={"absolute"}

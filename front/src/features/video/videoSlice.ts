@@ -4,7 +4,7 @@ import { RootState } from "../../store/store";
 import { VideoMetadata, VideoResponse } from "../videoList/videoListSlice.model";
 
 interface VideoState {
-    videoId: number;
+    videoId: string;
     videoName: string;
     videoDescription: string | null;
     metadata: VideoMetadata;
@@ -28,7 +28,7 @@ const initialMetadata = {
 }
 
 const initialState: VideoState = {
-    videoId: 0,
+    videoId: "",
     videoName: "",
     videoDescription: null,
     metadata: initialMetadata,
@@ -43,7 +43,7 @@ export const videoSlice = createSlice({
     name: 'video',
     initialState,
     reducers: {
-        setVideoId: (state, action: PayloadAction<number>) => {
+        setVideoId: (state, action: PayloadAction<string>) => {
             state.videoId = action.payload;
         },
         setVideoMetadata: (state, action: PayloadAction<VideoMetadata>) => {
@@ -70,7 +70,7 @@ export const videoSlice = createSlice({
             state.videoDescription = action.payload.description || null;
         },
         clearVideoData: (state) => {
-            state.videoId = 0;
+            state.videoId = "";
             state.metadata = initialMetadata;
             state.dashURL = "";
             state.fallbackURL = "";

@@ -34,7 +34,7 @@ export const multipartUpload = (
     let progress: VideoStatusResponse = {
         status: "idle",
         message: "pending start",
-        id: 0
+        id: ""
     };
 
     const uploadNextChunk = async () => {

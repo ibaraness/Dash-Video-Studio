@@ -1,3 +1,4 @@
+// MUI direct checked
 import Avatar from '@mui/material/Avatar';
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
@@ -6,16 +7,17 @@ import Grid from '@mui/material/Grid';
 import Box from '@mui/material/Box';
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import Typography from '@mui/material/Typography';
-import { Alert, Paper } from '@mui/material';
+import Alert from '@mui/material/Alert';
+import Paper from '@mui/material/Paper';
 import { useAppDispatch, useAppSelector } from '../app/hooks';
-import { selectIsLoggedIn, selectRefreshAttempts, setIsLoggedIn } from '../features/login/loginSlice';
+import { selectIsLoggedIn, selectRefreshAttempts, setIsLoggedIn, setUsername } from '../features/login/loginSlice';
 import { useNavigate, Link as RouterLink } from "react-router-dom";
 import { useEffect, useState } from 'react';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
-import { refreshUserToken, signupUser } from '../services/restApi/restAPI';
+import { getUserInfo, refreshUserToken, signupUser } from '../services/restApi/restAPI';
 
-const SignUp = () => {
+export const SignUp = () => {
 
     const formik = useFormik({
         initialValues: {
@@ -64,7 +66,6 @@ const SignUp = () => {
             }
             dispatch(setIsLoggedIn(true));
         } catch (err) {
-            console.log("I am here", err)
             setSignupError("Unknown error occurred, please try again later!");
         }
     }
@@ -76,7 +77,8 @@ const SignUp = () => {
                 if(res.isError){
                     return;
                 }
-                console.log("refresh", res);
+                const userInfo = await getUserInfo();
+                dispatch(setUsername(userInfo.data?.username || ""));
                 dispatch(setIsLoggedIn(true));
             } catch (e) {
                 console.error("e", e)
@@ -210,5 +212,3 @@ const SignUp = () => {
         </Paper>
     );
 }
-
-export default SignUp

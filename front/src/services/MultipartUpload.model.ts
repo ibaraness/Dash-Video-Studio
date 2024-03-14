@@ -7,5 +7,5 @@ export interface ProgressPayload {
 export interface VideoStatusResponse {
     status: string;
     message: string;
-    id: number;
+    id: string;
 }

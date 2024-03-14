@@ -37,6 +37,7 @@ export class BatchTranscodeDTO {
 export class UplodedVideoData {
     message: string;
     status: ChunkSavedStatus;
+    userName: string;
     userId: string;
     videoPath: string;
 }
@@ -46,18 +47,19 @@ export interface VideoPublic {
     thumbnail: string;
     dash: string;
     metadata: any;
-    id: number;
+    id: string;
     name: string;
     description: string;
     createDateTime: Date;
     lastChangedDateTime: Date;
 }
 
-export const UplodedVideoDataCreator = (message: string, status: ChunkSavedStatus, userId: string, videoPath: string) => {
+export const UplodedVideoDataCreator = (message: string, status: ChunkSavedStatus, userName: string, videoPath: string, userId: string) => {
     const uplodedVideoData = new UplodedVideoData();
     uplodedVideoData.message = message;
     uplodedVideoData.status = status;
     uplodedVideoData.videoPath = videoPath;
+    uplodedVideoData.userName = userName;
     uplodedVideoData.userId = userId;
     return uplodedVideoData;
 }

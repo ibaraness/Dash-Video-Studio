@@ -1,4 +1,11 @@
-import { MenuItem, FormControl, InputLabel, Select, SelectChangeEvent } from "@mui/material";
+// MUI direct checked
+// @ts-nocheck
+import MenuItem from "@mui/material/MenuItem";
+import FormControl from "@mui/material/FormControl";
+import InputLabel from "@mui/material/InputLabel";
+import Select from "@mui/material/Select";
+import {SelectChangeEvent} from "@mui/material/Select";
+
 import { useState, useEffect } from "react";
 import { useAppSelector, useAppDispatch } from "../../../app/hooks";
 import { selectSelectedTrack, selectAutoResolution, selectVariantTracks, setVariantTracks, setSelectedTrack, setShowQualityMenu } from "../../../features/videoPlayer/videoPlayerSlice";

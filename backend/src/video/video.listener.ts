@@ -22,12 +22,12 @@ export class VideoListener {
     ) { }
 
     @OnEvent(TranscodeEvents.PackageTranscodeDone)
-    async handleVideoPackageAndTranscode({ id, file, fallbackFile, uniqueFolderName, userId }: PackageTranscodeDoneEvent) {
+    async handleVideoPackageAndTranscode({ id, file, fallbackFile, uniqueFolderName, userId, userName }: PackageTranscodeDoneEvent) {
 
         try {
             // Upload all dash files to Storage service (S3)
             const dashFolder = path.dirname(file);
-            const { url } = await this.storageService.uploadFolder(userId, dashFolder, uniqueFolderName);
+            const { url } = await this.storageService.uploadFolder(userName, dashFolder, uniqueFolderName);
 
             // Save dash URL to DB
             const mpfFilename = path.basename(file);
@@ -36,11 +36,11 @@ export class VideoListener {
             const mp4filename = path.basename(fallbackFile);
             const mp4FallbackUrl = `${url}/${mp4filename}`;
 
-            await this.videoService.updateDashData(id, mpdUrl || file, mp4FallbackUrl);
+            await this.videoService.updateDashData(id, mpdUrl || file, mp4FallbackUrl, userId);
             this.logger.log("Save dash URL to DB: " + mpdUrl, VideoListener.name);
 
             // Notify client that video was updated and send it (websocket)
-            const video = await this.videoService.getById(id);
+            const video = await this.videoService.getPublicVideoById(id, userId);
             this.transcodeApiService.socketMessage<VideoPublic>(TranscodeGateWayEvent.VideoUpdated, video);
 
             // Remove temporary file from local storage

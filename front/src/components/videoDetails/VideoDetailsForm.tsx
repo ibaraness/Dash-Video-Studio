@@ -1,10 +1,16 @@
-import { Stack, TextField, Button, Box, CircularProgress } from "@mui/material";
+// MUI direct checked
+import Stack from "@mui/material/Stack";
+import TextField from "@mui/material/TextField";
+import Button from "@mui/material/Button";
+import Box from "@mui/material/Box";
+import CircularProgress from "@mui/material/CircularProgress";
+
 import { selectVideoDescription, selectVideoId, selectVideoMode, selectVideoName, setVideoDescription, setVideoMode, setVideoName } from "../../features/video/videoSlice";
 import { useAppDispatch, useAppSelector } from "../../app/hooks";
 import { setMessage, setOpen, setSeverity } from "../../features/notification/notificationSlice";
 import { isFetchBaseQueryError } from "../../services/helpers";
-import { editVideo, getAllVideos } from "../../services/restApi/restAPI";
-import { addAllVideos } from "../../features/videoList/videoListsSlice";
+import { editVideo } from "../../services/restApi/restAPI";
+import { addAllVideos, fetchVideos } from "../../features/videoList/videoListsSlice";
 
 const VideoDetailsForm = () => {
 
@@ -24,17 +30,22 @@ const VideoDetailsForm = () => {
 
     const saveChanges = async () => {
         async function loadVideos() {
-            const res = await getAllVideos();
-            if (res.isError) {
-                console.error(res.errorMessage);
-                return;
+            try {
+                const res = await dispatch(fetchVideos()).unwrap();
+                dispatch(addAllVideos(res || []));
+            } catch (e) {
+                if(typeof e === "object"){
+                   const errorWithMessage = {message:"Something went wrong!", ...e};
+                   failureNotification(errorWithMessage.message);
+                   return;
+                }
+                failureNotification();
+                console.error(e);
             }
-            dispatch(addAllVideos(res.data!));
         }
         try {
             dispatch(setVideoMode("loading"));
             const res = await editVideo({ id: videoId, name: videoName, description: videoDescription || "" });
-            console.log("res", res);
             if(res.isError){
                 dispatch(setVideoMode("edit"));
                 failureNotification();

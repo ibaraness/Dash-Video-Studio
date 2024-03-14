@@ -1,6 +1,13 @@
-import { ListItem, ListItemButton, ListItemIcon, ListItemText, Paper, List } from "@mui/material";
+// @ts-nocheck
+// MUI direct checked
+import ListItem from "@mui/material/ListItem";
+import ListItemButton from "@mui/material/ListItemButton";
+import ListItemIcon from "@mui/material/ListItemIcon";
+import ListItemText from "@mui/material/ListItemText";
+import Paper from "@mui/material/Paper";
+import List from "@mui/material/List";
+
 import CheckIcon from '@mui/icons-material/Check';
-import "shaka-player";
 import { useAppSelector, useAppDispatch } from "../../app/hooks";
 import { selectSelectedTrack, setSelectedTrack, setShowQualityMenu } from "../../features/videoPlayer/videoPlayerSlice";
 

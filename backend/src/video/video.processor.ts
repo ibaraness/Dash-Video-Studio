@@ -21,7 +21,7 @@ export class VideoProcessor {
 
     @Process('processUploadedVideo')
     async processUploadedVideo(job: Job<UplodedVideoData>) {
-        const { videoPath, userId } = job.data;
+        const { videoPath, userId, userName } = job.data;
         this.logger.log("processUploadedVideo: " + videoPath, VideoProcessor.name);
         try {
             this.logger.log("About to process video", VideoProcessor.name);
@@ -40,7 +40,7 @@ export class VideoProcessor {
             // Save screenshot in storage
             const imageFilename = path.basename(screenshotPath);
             const { url } = await this.storageService.uploadFileWithFolder(
-                userId,
+                userName,
                 uniqueFolderName,
                 imageFilename,
                 screenshotPath
@@ -48,15 +48,15 @@ export class VideoProcessor {
             this.logger.log("Uploaded screenshot to storage", VideoProcessor.name);
 
             // Save storage location on DB
-            const { id } = await this.videoService.saveVideo(videoPath, metadata, url)
+            const { id } = await this.videoService.saveVideo(videoPath, metadata, userId, url)
             this.logger.log("Video saved to database", VideoProcessor.name);
 
             // Save bucket name and file Id to DB
-            await this.videoService.updateBucketData(id, userId, uniqueFolderName);
+            await this.videoService.updateBucketData(id, userName, uniqueFolderName, userId);
             
             // Send the video to transcoding process
             const { width, height } = metadata;
-            this.transcodeApiService.triggerTranscodeDash({ width, height, id, userId, videoPath, uniqueFolderName });
+            this.transcodeApiService.triggerTranscodeDash({ width, height, id, userName, userId, videoPath, uniqueFolderName });
             this.logger.log("Video processing done!", VideoProcessor.name);
 
         } catch (e) {

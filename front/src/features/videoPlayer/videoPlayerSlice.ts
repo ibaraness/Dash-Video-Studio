@@ -1,5 +1,5 @@
+// @ts-nocheck
 import { PayloadAction, createSlice } from "@reduxjs/toolkit";
-import "shaka-player";
 import { RootState } from "../../store/store";
 
 export interface SelectedTrackInfo {

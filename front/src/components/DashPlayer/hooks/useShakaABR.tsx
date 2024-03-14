@@ -1,4 +1,4 @@
-import "shaka-player";
+// @ts-nocheck
 import { SelectedTrackInfo } from "../../../features/videoPlayer/videoPlayerSlice";
 import { useEffect } from "react";
 

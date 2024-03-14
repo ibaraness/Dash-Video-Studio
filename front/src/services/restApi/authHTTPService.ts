@@ -22,7 +22,6 @@ class AuthHTTPService {
 
     async refreshUserToken(): Promise<CustomResponse<AccessTokenRespons | null>> {
         const res = await this.post<undefined, AccessTokenRespons>('/auth/refresh', undefined, { withCredentials: true }, true);
-        console.log("refreshUserToken2")
         if (res.data) {
             setAccessToken(res.data!.access_token);
         }
@@ -38,9 +37,6 @@ class AuthHTTPService {
         const res = await this.post<undefined, { message: string }>('/auth/signout', undefined, {
             withCredentials: true,
         });
-        if (res.statusCode == 401) {
-            console.log("401 permission problem!")
-        }
         return res;
     }
 
@@ -140,7 +136,7 @@ class AuthHTTPService {
         };
     }
 
-    private generateErrorResponse<S = unknown>(err: unknown): CustomResponse<S | null> {
+    public generateErrorResponse<S = unknown>(err: unknown): CustomResponse<S | null> {
         if (err instanceof AxiosError) {
             return { ...this.generalErrorResponse<S>(), errorMessage: err.response?.data.message, statusCode: err.response?.status || 500 }
         }

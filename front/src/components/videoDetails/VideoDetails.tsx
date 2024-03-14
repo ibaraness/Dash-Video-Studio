@@ -1,4 +1,9 @@
-import { Box, Stack, Typography, Button } from "@mui/material";
+// MUI direct checked
+import Box from "@mui/material/Box";
+import Stack from "@mui/material/Stack";
+import Typography from "@mui/material/Typography";
+import Button from "@mui/material/Button";
+
 import EditIcon from '@mui/icons-material/Edit';
 import { selectVideoDescription, selectVideoName, selectVideoMode, setVideoMode, selectVideoId, clearVideoData } from "../../features/video/videoSlice";
 import { useAppDispatch, useAppSelector } from "../../app/hooks";
@@ -11,8 +16,8 @@ import { useEffect } from "react";
 import eventEmitter from "../DashPlayer/utils/eventEmitter";
 import { ConfirmResponse } from "../confirm/ConfirmDialog";
 import { setMessage, setOpen, setSeverity } from "../../features/notification/notificationSlice";
-import { deleteAVideo, getAllVideos } from "../../services/restApi/restAPI";
-import { addAllVideos } from "../../features/videoList/videoListsSlice";
+import { deleteAVideo } from "../../services/restApi/restAPI";
+import { addAllVideos, fetchVideos } from "../../features/videoList/videoListsSlice";
 
 const VideoDetails = () => {
     const videoName = useAppSelector(selectVideoName);
@@ -24,16 +29,22 @@ const VideoDetails = () => {
     useEffect(() => {
         async function deleteConfirmation({ action, id, approved }: ConfirmResponse) {
             async function loadVideos() {
-                const res = await getAllVideos();
-                if (res.isError) {
-                    console.error(res.errorMessage);
-                    return;
+                try {
+                    const res = await dispatch(fetchVideos()).unwrap();
+                    dispatch(addAllVideos(res || []));
+                } catch (e) {
+                    if(typeof e === "object"){
+                       const errorWithMessage = {message:"Something went wrong!", ...e};
+                       failureNotification(errorWithMessage.message);
+                       return;
+                    }
+                    failureNotification();
+                    console.error(e);
                 }
-                dispatch(addAllVideos(res.data!));
             }
             try {
                 if (approved && action === 'delete') {
-                    const res = await deleteAVideo(id);
+                    const res = await deleteAVideo(id as string);
                     if(res.isError){
                         console.error("error", res.errorMessage);
                         failureNotification();

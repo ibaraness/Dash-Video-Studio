@@ -14,7 +14,11 @@ const ProtectedRoute = () => {
     }, [isLoggedIn, navigate])
 
     return (
-        <Outlet />
+        <>
+            {
+                isLoggedIn ? <Outlet /> : <div>You are not logged in!</div>
+            }
+        </>
     )
 }
 

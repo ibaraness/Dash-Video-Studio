@@ -1,6 +1,7 @@
-import { Box } from "@mui/material";
+// MUI direct checked
+// @ts-nocheck
+import Box from "@mui/material/Box";
 import { useRef, useEffect } from "react";
-import "shaka-player";
 import { selectBuffer, selectProgressValue, setBuffer, setProgressValue } from "../../features/videoPlayer/videoPlayerSlice";
 import { useAppDispatch, useAppSelector } from "../../app/hooks";
 import eventEmitter from "./utils/eventEmitter";

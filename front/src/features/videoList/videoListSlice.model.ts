@@ -12,7 +12,7 @@ export interface VideoMetadata {
 }
 
 export interface VideoResponse {
-    id: number;
+    id: string;
     name: string;
     description: string | null;
     thumbnail: string;
@@ -24,6 +24,6 @@ export interface VideoResponse {
 }
 
 export interface BatchTranscode {
-    videoId: number;
+    videoId: string;
     sizes: string[];
 }

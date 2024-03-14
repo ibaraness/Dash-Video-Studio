@@ -1,6 +1,6 @@
 export const AppConfig = {
     API: {
-        baseURL:"http://localhost:3000",
+        baseURL:"http://localhost", //http://localhost:3000
         uploadKey: "video"
     },
     strings: {

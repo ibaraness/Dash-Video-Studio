@@ -1,6 +1,7 @@
-import { Box } from "@mui/material";
+// MUI direct checked
+// @ts-nocheck
+import Box from "@mui/material/Box";
 import { useEffect } from "react";
-import "shaka-player";
 import DashPlayerQualityMenu from "./DashPlayerQualityMenu";
 import { selectVariantTracks, setVariantTracks } from "../../features/videoPlayer/videoPlayerSlice";
 import { useAppDispatch, useAppSelector } from "../../app/hooks";

@@ -1,5 +1,5 @@
+// @ts-nocheck
 import { useRef, useEffect } from "react";
-import 'shaka-player';
 
 export default function useShakaVideoPlayer(uniquId: number){
     const isSupportedBrowser = useRef<boolean>(true);
@@ -11,7 +11,7 @@ export default function useShakaVideoPlayer(uniquId: number){
     const videoElementRef = useRef<HTMLVideoElement>(document.createElement('video'));
 
     useEffect(() => {
-
+        
         // Install built-in polyfills to patch browser incompatibilities.
         shaka.polyfill.installAll();
 

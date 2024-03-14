@@ -3,7 +3,8 @@ export interface PackageTranscodeJobData {
     height: number;
     videoPath: string;
     userId: string;
-    id: number;
+    userName: string;
+    id: string;
     uniqueFolderName: string;
 }
 
@@ -11,7 +12,7 @@ export interface TranscodeDash extends PackageTranscodeJobData {}
 
 export interface TranscodeJobData {
     videoSize: VideoSizes;
-    videoId: number;
+    videoId: string;
     videoPath: string;
 }
 

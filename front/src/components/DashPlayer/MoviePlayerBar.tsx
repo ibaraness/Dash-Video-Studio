@@ -1,4 +1,11 @@
-import { Box, Button, Grid, IconButton, Slider } from "@mui/material";
+// MUI direct checked
+// @ts-nocheck
+import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
+import Grid from "@mui/material/Grid";
+import IconButton from "@mui/material/IconButton";
+import Slider from "@mui/material/Slider";
+
 import VideoTimer from "./VideoTimer";
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import PauseIcon from '@mui/icons-material/Pause';
@@ -8,7 +15,6 @@ import FullscreenIcon from '@mui/icons-material/Fullscreen';
 import FullscreenExitIcon from '@mui/icons-material/FullscreenExit';
 import SettingsIcon from '@mui/icons-material/Settings';
 import QualitySwitcher from "./QualitySwitcher";
-import "shaka-player";
 import { useAppSelector, useAppDispatch } from "../../app/hooks";
 import { selectAutoResolution, selectFullScreen, selectMute, selectPlaying, selectSelectedTrack, selectSettingIsOpen, selectShowQualityMenu, selectVolume, setFullScreen, setMute, setPlaying, setSettingIsOpen, setShowQualityMenu, setVolume } from "../../features/videoPlayer/videoPlayerSlice";
 import { useEffect } from "react";

@@ -20,7 +20,7 @@ export class TranscodeProcessor {
 
     @Process('transcode_dash')
     async transcodeDash(job: Job<PackageTranscodeJobData>) {
-        const { width, height, videoPath, id, uniqueFolderName, userId } = job.data;
+        const { width, height, videoPath, id, uniqueFolderName, userName, userId } = job.data;
         const stream = this.dashService.packageAndTranscode(videoPath, width, height);
         const subscriber = stream.subscribe(({ status, percentage, size, mpdFilePath, fallbackFile }) => {
             this.transcodeGateway.io.emit(TranscodeGateWayEvent.PackageTranscode, { status, percentage, size });
@@ -28,7 +28,7 @@ export class TranscodeProcessor {
                 this.logger.debug(`transcoded dash file: ${mpdFilePath}`, TranscodeProcessor.name)
                 this.eventEmitter.emit(
                     TranscodeEvents.PackageTranscodeDone,
-                    PackageTranscodeDoneEventCreator(id, mpdFilePath, fallbackFile, uniqueFolderName, userId)
+                    PackageTranscodeDoneEventCreator(id, mpdFilePath, fallbackFile, uniqueFolderName, userId, userName)
                 )
                 subscriber.unsubscribe();
             }

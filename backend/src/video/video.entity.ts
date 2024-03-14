@@ -3,11 +3,14 @@ import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateCol
 
 @Entity('videos')
 export class Video {
-    @PrimaryGeneratedColumn()
-    id: number;
+    @PrimaryGeneratedColumn("uuid")
+    id: string;
 
     @Column({ name: 'fileId', nullable: true })
     fileId: UUID;
+
+    @Column({ name: 'user_id', nullable: true })
+    userId: string;
 
     @Column({ name: 'name', length: 70, nullable: false })
     name: string;

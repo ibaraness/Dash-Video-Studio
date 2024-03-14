@@ -1,4 +1,5 @@
-import { CircularProgress } from "@mui/material";
+// MUI direct checked
+import CircularProgress from "@mui/material/CircularProgress";
 import { useAppDispatch, useAppSelector } from "../../app/hooks";
 import { selectIsBuffering, setIsBuffering } from "../../features/videoPlayer/videoPlayerSlice";
 import { useEffect } from "react";
@@ -22,7 +23,10 @@ const VideoLoaderAnimation = ({ src, videoElement }: VideoLoaderAnimationProps) 
         }
 
         function loadeddataHandler() {
-            dispatch(setIsBuffering(true));
+            if(src){
+              dispatch(setIsBuffering(true));  
+            }
+            
         }
 
         function canPlayThroughHandler(){
