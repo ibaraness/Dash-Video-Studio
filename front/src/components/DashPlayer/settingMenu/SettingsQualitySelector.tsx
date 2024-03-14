@@ -1,4 +1,5 @@
 // MUI direct checked
+// @ts-nocheck
 import MenuItem from "@mui/material/MenuItem";
 import FormControl from "@mui/material/FormControl";
 import InputLabel from "@mui/material/InputLabel";

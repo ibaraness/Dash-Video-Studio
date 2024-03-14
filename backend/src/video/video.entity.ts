@@ -9,6 +9,9 @@ export class Video {
     @Column({ name: 'fileId', nullable: true })
     fileId: UUID;
 
+    @Column({ name: 'user_id', nullable: true })
+    userId: string;
+
     @Column({ name: 'name', length: 70, nullable: false })
     name: string;
 

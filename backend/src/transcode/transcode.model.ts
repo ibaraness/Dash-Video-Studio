@@ -3,6 +3,7 @@ export interface PackageTranscodeJobData {
     height: number;
     videoPath: string;
     userId: string;
+    userName: string;
     id: string;
     uniqueFolderName: string;
 }

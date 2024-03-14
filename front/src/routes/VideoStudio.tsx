@@ -110,7 +110,7 @@ export const VideoStudio = () => {
     }
 
     useEffect(() => {
-        if (playerContainer.current && topMenuOffset == 0) {
+        if (playerContainer.current) {
             dispatch(setTopOffset(playerContainer.current.offsetHeight));
         }
         function handleResize() {

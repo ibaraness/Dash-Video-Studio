@@ -11,10 +11,10 @@ import Typography from '@mui/material/Typography';
 import Alert from '@mui/material/Alert';
 import Paper from '@mui/material/Paper';
 import { useAppDispatch, useAppSelector } from '../app/hooks';
-import { selectIsLoggedIn, selectRefreshAttempts, setIsLoggedIn, setRefreshAttempts } from '../features/login/loginSlice';
+import { selectIsLoggedIn, selectRefreshAttempts, setIsLoggedIn, setRefreshAttempts, setUsername } from '../features/login/loginSlice';
 import { useNavigate, Link as RouterLink } from "react-router-dom";
 import { useEffect, useState } from 'react';
-import { loginUser, refreshUserToken } from '../services/restApi/restAPI';
+import { getUserInfo, loginUser, refreshUserToken } from '../services/restApi/restAPI';
 
 const LoginPage = () => {
 
@@ -30,10 +30,13 @@ const LoginPage = () => {
     const loginAsync = async (credentials: { username: string, password: string }) => {
         try {
             const res = await loginUser(credentials);
-            if(res.isError){
+            if (res.isError) {
                 setSignupError(res.errorMessage || "Unknown error occurred, please try again later!");
                 return;
             }
+            // get user info
+            const userInfo = await getUserInfo();
+            dispatch(setUsername(userInfo.data?.username || ""));
             dispatch(setIsLoggedIn(true));
         } catch (err) {
             // Handle error here
@@ -45,9 +48,11 @@ const LoginPage = () => {
         async function refresh() {
             try {
                 const res = await refreshUserToken();
-                if(res.isError){
+                if (res.isError) {
                     return;
                 }
+                const userInfo = await getUserInfo();
+                dispatch(setUsername(userInfo.data?.username || ""));
                 dispatch(setIsLoggedIn(true));
             } catch (e) {
                 console.error("e", e)
@@ -55,7 +60,7 @@ const LoginPage = () => {
         }
         if (isLoggedIn) {
             navigate("/");
-        } else if(refreshAttempts < 1) {
+        } else if (refreshAttempts < 1) {
             dispatch(setRefreshAttempts(refreshAttempts + 1));
             refresh();
         }

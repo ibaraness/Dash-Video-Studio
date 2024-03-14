@@ -54,3 +54,10 @@ export interface VideoResponse {
     createDateTime: Date;
     lastChangedDateTime: Date;
 }
+
+export interface UserInfoRes {
+    sub: string;
+    username: string;
+    iat: number;
+    exp: number;
+}

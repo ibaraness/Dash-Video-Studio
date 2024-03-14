@@ -59,8 +59,8 @@ export class VideoService {
         return metadata;
     }
 
-    async streamVideo(res: Response, headers: { range: string }, videoId: string, resolution?: string): Promise<void> {
-        let { fallbackVideoPath: videoPath } = await this.loadvideo(videoId);
+    async streamVideo(res: Response, headers: { range: string }, videoId: string, userId: string, resolution?: string): Promise<void> {
+        let { fallbackVideoPath: videoPath } = await this.loadvideo(videoId, userId);
 
         // Add check if exist
         const { size } = fs.statSync(videoPath);
@@ -143,10 +143,10 @@ export class VideoService {
         return imageResizer(ffmpegScreeshotPath, finalFilePath, thumbWidth, thumbHeight);
     }
 
-    async saveVideo(videoPath: string, videoInfo: VideoBasicInfo, imagePath?: string) {
+    async saveVideo(videoPath: string, videoInfo: VideoBasicInfo, userId: string, imagePath?: string) {
         const metadata = JSON.stringify(videoInfo);
         const filename = path.parse(videoPath).name
-        const video = this.videoRepository.create({ metadata, name: filename, thumbnail: imagePath });
+        const video = this.videoRepository.create({ metadata, name: filename, thumbnail: imagePath, userId });
         const saved = await this.videoRepository.save(video);
         await this.cacheManager.del("allVideos");
         await this.cacheManager.set(String(saved.id), JSON.stringify(saved));
@@ -158,21 +158,25 @@ export class VideoService {
         await this.cacheManager.reset();
     }
 
-    async loadvideo(id: string): Promise<Video> {
-        const cached: string = await this.cacheManager.get(String(id));
+    async clearCache(){
+        await this.cacheManager.reset();
+    }
+
+    async loadvideo(id: string, userId: string): Promise<Video> {
+        const cached: string = await this.cacheManager.get(`${id}-${userId}`);
         if (cached) {
             return JSON.parse(cached);
         }
-        const video = await this.videoRepository.findOne({ where: { id } });
+        const video = await this.videoRepository.findOne({ where: { id, userId } });
         if (!video) {
             throw new NotFoundException(`Video with ID ${id} not found`);
         }
-        await this.cacheManager.set(String(id), JSON.stringify(video));
+        await this.cacheManager.set(`${id}-${userId}`, JSON.stringify(video));
         return video;
     }
 
-    async getById(id: string): Promise<VideoPublic> {
-        const cached: string = await this.cacheManager.get(`getById${id}`);
+    async getPublicVideoById(id: string,  userId: string): Promise<VideoPublic> {
+        const cached: string = await this.cacheManager.get(`getById${id}-${userId}`);
         if (cached) {
             return JSON.parse(cached);
         }
@@ -188,19 +192,20 @@ export class VideoService {
             dash: this.getPublicURL(dashFilePath),
             metadata: JSON.parse(rest.metadata)
         }
-        await this.cacheManager.set(`getById${id}`, JSON.stringify(videoPublic));
-        await this.cacheManager.set(String(id), JSON.stringify(video));
-        await this.cacheManager.del("allVideos");
+        await this.cacheManager.set(`getById${id}-${userId}`, JSON.stringify(videoPublic));
+        await this.cacheManager.set(`${id}-${userId}`, JSON.stringify(video));
+        await this.cacheManager.del(`allVideos(${userId})`);
         return videoPublic;
     }
 
-    async getAll() {
-        const cachedResults: string = await this.cacheManager.get("allVideos");
+    async getAll(userId: string) {
+        const cachedResults: string = await this.cacheManager.get(`allVideos(${userId})`);
         if (cachedResults) {
             return JSON.parse(cachedResults);
         }
 
         const videos = await this.videoRepository.find({
+            where:{userId},
             order: { "lastChangedDateTime": "DESC" }
         });
         if (!videos || !videos.length) {
@@ -218,7 +223,7 @@ export class VideoService {
             }
         });
 
-        await this.cacheManager.set("allVideos", JSON.stringify(allVideos));
+        await this.cacheManager.set(`allVideos(${userId})`, JSON.stringify(allVideos));
 
         return allVideos;
     }
@@ -231,70 +236,70 @@ export class VideoService {
         return localPath.replace(localSegment, '');
     }
 
-    async deleteVideo(id: string) {
-        const video = await this.videoRepository.findOne({ where: { id } });
+    async deleteVideo(id: string, userId: string) {
+        const video = await this.videoRepository.findOne({ where: { id, userId } });
         if (!video) {
             throw new NotFoundException(`Video with ID ${id} not found`);
         }
         const deletedVideo = await this.videoRepository.delete(id)
-        await this.cacheManager.del("allVideos");
-        await this.cacheManager.del(`getById${id}`);
-        await this.cacheManager.del(String(id));
+        await this.cacheManager.del(`allVideos(${userId})`);
+        await this.cacheManager.del(`getById${id}-${userId}`);
+        await this.cacheManager.del(`${id}-${userId}`);
         return deletedVideo;
     }
 
-    async updateTrascodeData(id: string, size: string, videoPath: string) {
-        const video = await this.videoRepository.findOne({ where: { id } });
+    async updateTrascodeData(id: string, size: string, videoPath: string, userId: string) {
+        const video = await this.videoRepository.findOne({ where: { id, userId } });
         if (!video) {
             throw new NotFoundException(`Video with ID ${id} not found`);
         }
 
         const saved = await this.videoRepository.save(video);
-        await this.cacheManager.del("allVideos");
-        await this.cacheManager.del(`getById${id}`);
-        await this.cacheManager.set(String(id), JSON.stringify(saved));
+        await this.cacheManager.del(`allVideos(${userId})`);
+        await this.cacheManager.del(`getById${id}-${userId}`);
+        await this.cacheManager.set(`${id}-${userId}`, JSON.stringify(saved));
         return saved;
     }
 
-    async updateBucketData(id: string, bucket: string, fileId: UUID) {
-        const video = await this.videoRepository.findOne({ where: { id } });
+    async updateBucketData(id: string, bucket: string, fileId: UUID, userId: string) {
+        const video = await this.videoRepository.findOne({ where: { id, userId } });
         if (!video) {
             throw new NotFoundException(`Video with ID ${id} not found`);
         }
         video.bucket = bucket;
         video.fileId = fileId;
         const saved = await this.videoRepository.save(video);
-        await this.cacheManager.del("allVideos");
-        await this.cacheManager.del(`getById${id}`);
-        await this.cacheManager.set(String(id), JSON.stringify(saved));
+        await this.cacheManager.del(`allVideos(${userId})`);
+        await this.cacheManager.del(`getById${id}-${userId}`);
+        await this.cacheManager.set(`${id}-${userId}`, JSON.stringify(saved));
         return saved;
     }
 
-    async updateDashData(id: string, dashFilePath: string, fallbackFile: string) {
-        const video = await this.videoRepository.findOne({ where: { id } });
+    async updateDashData(id: string, dashFilePath: string, fallbackFile: string, userId: string) {
+        const video = await this.videoRepository.findOne({ where: { id, userId } });
         if (!video) {
             throw new NotFoundException(`Video with ID ${id} not found`);
         }
         video.dashFilePath = dashFilePath;
         video.fallbackVideoPath = fallbackFile;
         const saved = await this.videoRepository.save(video);
-        await this.cacheManager.del("allVideos");
-        await this.cacheManager.del(`getById${id}`);
-        await this.cacheManager.set(String(id), JSON.stringify(saved));
+        await this.cacheManager.del(`allVideos(${userId})`);
+        await this.cacheManager.del(`getById${id}-${userId}`);
+        await this.cacheManager.set(`${id}-${userId}`, JSON.stringify(saved));
         return saved;
     }
 
-    async updateNameAndDescription(id: string, name: string, description: string) {
-        const video = await this.videoRepository.findOne({ where: { id } });
+    async updateNameAndDescription(id: string, name: string, description: string, userId: string) {
+        const video = await this.videoRepository.findOne({ where: { id, userId } });
         if (!video) {
             throw new NotFoundException(`Video with ID ${id} not found`);
         }
         video.name = name;
         video.description = description;
         const saved = await this.videoRepository.save(video);
-        await this.cacheManager.del("allVideos");
-        await this.cacheManager.del(`getById${id}`);
-        await this.cacheManager.set(String(id), JSON.stringify(saved));
+        await this.cacheManager.del(`allVideos(${userId})`);
+        await this.cacheManager.del(`getById${id}-${userId}`);
+        await this.cacheManager.set(`${id}-${userId}`, JSON.stringify(saved));
         return saved;
     }
 }

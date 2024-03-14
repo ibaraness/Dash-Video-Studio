@@ -42,23 +42,28 @@ export class VideoController {
     async clear(@Req() req: Request) {
         if (process.env.NEST_MODE === 'dev') {
             const userBucket = req['user']["username"] || VideoBuckets.Dash;
-            console.log("userBucket", userBucket)
             await this.storageService.deleteAllListOnBucket(userBucket);
             return this.videoService.clear();
         }
     }
 
+    @Get('clear-cache')
+    async clearCache() {
+        return this.videoService.clearCache();
+    }
+
     @Get('get-req-user')
-    async videoListTest(@Req() req: Request){
+    async videoListTest(@Req() req: Request) {
         // await this.storageService.deleteAllListOnBucket(VideoBuckets.Dash);
         return {
-            "message": req['user']["username"] || "No user ID"
+            "message": req['user']["username"] || "No user"
         }
     }
 
     @Get('all')
-    async getAll() {
-        return this.videoService.getAll();
+    async getAll(@Req() req: Request) {
+        const userId: string = req['userId'] || "";
+        return this.videoService.getAll(userId);
     }
 
 
@@ -66,30 +71,35 @@ export class VideoController {
     @Header('Accept-Ranges', 'bytes')
     @Header('Content-Type', 'video/mp4')
     async getStreamVideo(
+        @Req() req: Request,
         @Param('id') videoId: string,
         @Param('resolution') resolution: string,
         @Headers('range') headers: { 'range': string },
         @Res() res: Response
     ) {
-        this.videoService.streamVideo(res, headers, videoId, resolution);
+        const userId: string = req['userId'] || "";
+        this.videoService.streamVideo(res, headers, videoId, userId, resolution);
     }
 
     @Get('/info/:id')
-    async videoInfo(@Param('id') videoId: string) {
-        const { id, metadata, ...others } = await this.videoService.loadvideo(videoId);
+    async videoInfo(@Req() req: Request, @Param('id') videoId: string) {
+        const userId: string = req['userId'] || "";
+        const { id, metadata, ...others } = await this.videoService.loadvideo(videoId, userId);
         return { id, metadata: JSON.parse(metadata) };
     }
 
     @Get('/fullinfo/:id')
-    async widevideoInfo(@Param('id') videoId: string) {
-        const { fallbackVideoPath } = await this.videoService.loadvideo(videoId);
+    async widevideoInfo(@Req() req: Request, @Param('id') videoId: string) {
+        const userId: string = req['userId'] || "";
+        const { fallbackVideoPath } = await this.videoService.loadvideo(videoId, userId);
         const metadata = await this.videoService.getVideoInfo(fallbackVideoPath)
         return metadata;
     }
 
     @Get('/:id')
-    async getSingleVideo(@Param('id') videoId: string) {
-        const video = await this.videoService.loadvideo(videoId);
+    async getSingleVideo(@Req() req: Request, @Param('id') videoId: string) {
+        const userId: string = req['userId'] || "";
+        const video = await this.videoService.loadvideo(videoId, userId);
         const { dashFilePath, thumbnail, fallbackVideoPath, ...rest } = video;
         return {
             ...rest,
@@ -102,8 +112,9 @@ export class VideoController {
 
     // Upadte video title, description and tags
     @Put('/:id')
-    async updateVideo(@Param('id') videoId: string, @Body() { name, description }: VideoUpdateDTO) {
-        const video = await this.videoService.updateNameAndDescription(videoId, name, description);
+    async updateVideo(@Req() req: Request,@Param('id') videoId: string, @Body() { name, description }: VideoUpdateDTO) {
+        const userId: string = req['userId'] || "";
+        const video = await this.videoService.updateNameAndDescription(videoId, name, description, userId);
         const { dashFilePath, thumbnail, fallbackVideoPath, ...rest } = video;
         return {
             ...rest,
@@ -115,16 +126,17 @@ export class VideoController {
     }
 
     @Delete('/:id')
-    async deleteVideo(@Param('id') videoId: string) {
+    async deleteVideo(@Req() req: Request, @Param('id') videoId: string) {
         try {
             // Getting the file from database
-            const video = await this.videoService.loadvideo(videoId);
+            const userId: string = req['userId'] || "";
+            const video = await this.videoService.loadvideo(videoId, userId);
 
             // Deleting it from Min.io
             await this.storageService.deleteFiles(video.bucket, video.fileId);
 
             // Deleting it from db
-            const deletedVideo = await this.videoService.deleteVideo(videoId);
+            const deletedVideo = await this.videoService.deleteVideo(videoId, userId);
 
             return { deletedVideo };
         } catch (err) {
@@ -133,6 +145,7 @@ export class VideoController {
         }
     }
 
+    //TODO: Remove in production
     @Public()
     @Post('/create-bucket')
     async createBucket(@Body() { name }: { name: string }) {
@@ -152,10 +165,11 @@ export class VideoController {
         return from(this.videoUploadService.handleSavingChunk(file.buffer, body)).pipe(
             tap(({ message, status, videoPath }) => {
                 if (status === ChunkSavedStatus.Done) {
-                    const userId = req['user']["username"] || `user${Math.ceil(Math.random() * 1234)}`;
+                    const userName = req['user']["username"] || `user${Math.ceil(Math.random() * 1234)}`;
+                    const userId: string = req['userId'] || "";
                     this.videoQueue.add(
                         VideoProcess.ProcessUploadedVideo,
-                        UplodedVideoDataCreator(message, status, userId, videoPath)
+                        UplodedVideoDataCreator(message, status, userName, videoPath, userId)
                     )
                 }
             }),

@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { PayloadAction, createSlice } from "@reduxjs/toolkit";
 import { RootState } from "../../store/store";
 

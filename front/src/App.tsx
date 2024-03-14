@@ -20,9 +20,10 @@ import eventEmitter from './components/DashPlayer/utils/eventEmitter';
 import ConfirmDialog from './components/confirm/ConfirmDialog';
 import { Outlet } from "react-router-dom";
 import AccountCircle from '@mui/icons-material/AccountCircle';
-import { selectIsLoggedIn, setIsLoggedIn } from './features/login/loginSlice';
+import { selectIsLoggedIn, selectUsername, setIsLoggedIn } from './features/login/loginSlice';
 import { logoutUser } from './services/restApi/restAPI';
 import { setMute, setVolume } from './features/videoPlayer/videoPlayerSlice';
+import { clearVideoData } from './features/video/videoSlice';
 
 function App() {
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
@@ -30,6 +31,7 @@ function App() {
 
   const dispatch = useAppDispatch();
   const loggedIn = useAppSelector(selectIsLoggedIn);
+  const username = useAppSelector(selectUsername);
 
   useEffect(() => {
     function setUi() {
@@ -81,6 +83,8 @@ function App() {
         return;
       }
       dispatch(setIsLoggedIn(false));
+      //clean video
+      dispatch(clearVideoData());
       handleClose();
     } catch (e) {
       console.error(e)
@@ -92,13 +96,22 @@ function App() {
       <CssBaseline />
       <AppBar position="fixed" ref={appMenuElemnt} sx={{ display: { xs: "block", md: "block" } }}>
         <Toolbar>
+          <Box sx={{
+            backgroundColor:"white", 
+            width:{xs:"30px", md:"50px"}, 
+            height:{xs:"30px", md:"50px"},  
+            borderRadius:"50%", 
+            p:{xs:"1px", md:"3px"}, 
+            mr:1}}>
+            <img src='/logo-no-background.png' width={"100%"} alt='Dash Video Studio logo' />
+          </Box>
           <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-            Video Studio
+            Dash Video Studio
           </Typography>
           {loggedIn && (
             <Box>
               <Stack direction={"row"} justifyContent={"center"} alignItems={"center"}>
-                
+                <Typography variant="subtitle1">{username}</Typography>
                 <IconButton
                   size="large"
                   aria-label="account of current user"
@@ -109,6 +122,7 @@ function App() {
                 >
                   <AccountCircle />
                 </IconButton>
+
               </Stack>
 
               <Menu
@@ -126,8 +140,6 @@ function App() {
                 open={Boolean(anchorEl)}
                 onClose={handleClose}
               >
-                <MenuItem onClick={handleClose}>Profile</MenuItem>
-                <MenuItem onClick={handleClose}>My account</MenuItem>
                 <MenuItem onClick={logMeOut}>Log-out</MenuItem>
               </Menu>
             </Box>

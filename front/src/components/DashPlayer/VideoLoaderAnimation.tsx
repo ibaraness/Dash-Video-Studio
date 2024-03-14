@@ -23,7 +23,10 @@ const VideoLoaderAnimation = ({ src, videoElement }: VideoLoaderAnimationProps) 
         }
 
         function loadeddataHandler() {
-            dispatch(setIsBuffering(true));
+            if(src){
+              dispatch(setIsBuffering(true));  
+            }
+            
         }
 
         function canPlayThroughHandler(){

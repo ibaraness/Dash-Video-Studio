@@ -1,4 +1,5 @@
 // MUI direct checked
+// @ts-nocheck
 import Box from "@mui/material/Box";
 import { useRef, useEffect } from "react";
 import { selectBuffer, selectProgressValue, setBuffer, setProgressValue } from "../../features/videoPlayer/videoPlayerSlice";

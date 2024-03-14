@@ -10,7 +10,7 @@ import {
 
 import { Server } from "socket.io";
 
-@WebSocketGateway({ cors: true })
+@WebSocketGateway({ cors: true, path: '/api/events' })
 export class TranscodeGateway
     implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
     private readonly nestlogger = new Logger(TranscodeGateway.name);

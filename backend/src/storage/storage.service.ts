@@ -86,7 +86,6 @@ export class StorageService {
     });
 
     objectsStream.on('end', () => {
-      console.log("objectsList", objectsList.length)
       minioClient.removeObjects(bucket, objectsList, (e) => {
         if (e) {
           this.logger.error("Unable to remove Objects", JSON.stringify(e), StorageService.name);

@@ -10,12 +10,12 @@ import Typography from '@mui/material/Typography';
 import Alert from '@mui/material/Alert';
 import Paper from '@mui/material/Paper';
 import { useAppDispatch, useAppSelector } from '../app/hooks';
-import { selectIsLoggedIn, selectRefreshAttempts, setIsLoggedIn } from '../features/login/loginSlice';
+import { selectIsLoggedIn, selectRefreshAttempts, setIsLoggedIn, setUsername } from '../features/login/loginSlice';
 import { useNavigate, Link as RouterLink } from "react-router-dom";
 import { useEffect, useState } from 'react';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
-import { refreshUserToken, signupUser } from '../services/restApi/restAPI';
+import { getUserInfo, refreshUserToken, signupUser } from '../services/restApi/restAPI';
 
 export const SignUp = () => {
 
@@ -77,6 +77,8 @@ export const SignUp = () => {
                 if(res.isError){
                     return;
                 }
+                const userInfo = await getUserInfo();
+                dispatch(setUsername(userInfo.data?.username || ""));
                 dispatch(setIsLoggedIn(true));
             } catch (e) {
                 console.error("e", e)
