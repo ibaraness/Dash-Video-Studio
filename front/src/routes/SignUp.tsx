@@ -10,7 +10,7 @@ import Typography from '@mui/material/Typography';
 import Alert from '@mui/material/Alert';
 import Paper from '@mui/material/Paper';
 import { useAppDispatch, useAppSelector } from '../app/hooks';
-import { selectIsLoggedIn, selectRefreshAttempts, setIsLoggedIn, setUsername } from '../features/login/loginSlice';
+import { selectIsLoggedIn, selectRefreshAttempts, setIsLoggedIn, setRefreshAttempts, setUsername } from '../features/login/loginSlice';
 import { useNavigate, Link as RouterLink } from "react-router-dom";
 import { useEffect, useState } from 'react';
 import { useFormik } from 'formik';
@@ -86,7 +86,8 @@ export const SignUp = () => {
         }
         if (isLoggedIn) {
             navigate("/");
-        } else if (refreshAttempts < 2) {
+        } else if (refreshAttempts < 1) {
+            dispatch(setRefreshAttempts(refreshAttempts + 1));
             refresh();
         }
 

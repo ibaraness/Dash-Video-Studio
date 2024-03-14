@@ -35,16 +35,8 @@
 <h3 align="center">Dash Video Studio</h3>
 
   <p align="center">
-    A full dashboard to package, convert and store DASH video (Dynamic Adaptive Streaming over HTTP).
-    <br />
-    <!-- <a href="https://github.com/github_username/repo_name"><strong>Explore the docs »</strong></a> -->
-    <br />
-    <br />
-    <!-- <a href="https://github.com/github_username/repo_name">View Demo</a>
-    ·
-    <a href="https://github.com/github_username/repo_name/issues">Report Bug</a>
-    ·
-    <a href="https://github.com/github_username/repo_name/issues">Request Feature</a> -->
+    A full dashboard to package, convert and store DASH video (Dynamic Adaptive Streaming over HTTP). 
+    <b>>The application is currently in the testing staging phase and is not yet ready for release. Additionally, it is pending further development.</b>
   </p>
 </div>
 
@@ -72,7 +64,6 @@
     <li><a href="#contributing">Contributing</a></li>
     <li><a href="#license">License</a></li>
     <li><a href="#contact">Contact</a></li>
-    <li><a href="#acknowledgments">Acknowledgments</a></li>
   </ol>
 </details>
 
@@ -81,7 +72,7 @@
 <!-- ABOUT THE PROJECT -->
 ## About The Project
 
-[![Product Name Screen Shot][product-screenshot]](https://example.com)
+![Product Name Screen Shot][product-screenshot]
 
 The Dash Video Studio draws inspiration from popular social media and video platforms like YouTube, Netflix, and Dailymotion. Currently, serving large, high-resolution videos requires using services like YouTube for transcoding and packaging, or attempting to stream the video independently. While streaming large video files to HTML video players is feasible, it often leads to lengthy buffering times and freezes, especially considering varying user bandwidth and video size/bitrate.
 
@@ -97,14 +88,19 @@ Our goal with the Dash Video Studio is to simplify this process by providing a u
 
 ### Built With
 
-* [![Next][Next.js]][Next-url]
 * [![React][React.js]][React-url]
-* [![Vue][Vue.js]][Vue-url]
-* [![Angular][Angular.io]][Angular-url]
-* [![Svelte][Svelte.dev]][Svelte-url]
-* [![Laravel][Laravel.com]][Laravel-url]
-* [![Bootstrap][Bootstrap.com]][Bootstrap-url]
-* [![JQuery][JQuery.com]][JQuery-url]
+* [![Nest][Nest.js]][Nest-url]
+* [![Redis][Redis.io]][Redis-url]
+* [![PostgreQL][PostgresQL.org]][PostgresQL-url]
+* [![Docker][Docker.com]][Docker-url]
+
+[Redis.io]:https://img.shields.io/badge/Redis-DC382D?style=for-the-badge&logo=redis&logoColor=white
+[Redis-url]:https://redis.io/
+[PostgresQL.org]:https://img.shields.io/badge/postgresql-4169e1?style=for-the-badge&logo=postgresql&logoColor=white
+[PostgresQL-url]:https://www.postgresql.org/
+[Docker.com]:https://img.shields.io/badge/docker-%230db7ed.svg?style=for-the-badge&logo=docker&logoColor=white
+[Docker-url]:https://www.docker.com/
+[React-url]: https://reactjs.org/
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -146,6 +142,7 @@ To run the app, you have three options:
      ./pgshell.sh
      ./minio.sh
      ./redis.sh
+     ./nginx.sh
      ```
    - These scripts will build and configure each service using Docker.
    - You can run each with Bash:
@@ -153,6 +150,7 @@ To run the app, you have three options:
         bash ./pgshell.sh
         bash ./minio.sh
         bash ./redis.sh
+        bash ./nginx.sh
         ```
     - To run the backend NestJS server install the dependencies in `./backend` dierctory:
         ```
@@ -164,6 +162,9 @@ To run the app, you have three options:
         #NestJs environment
         NEST_MODE=dev
         NODE_ENV=dev
+
+        #JWT secret word
+        SECRET_WORD=a_very_secret_word_not_to_be_shared_with_anyone
 
         #Winston loggin level
         LOG_LEVEL=info #set logging level
@@ -198,8 +199,8 @@ To run the app, you have three options:
         ```
         pnpm run dev
         ```
-    - After all is done, you can run the dashboard in your browser in port 8080:
-    [localhost:8080](http://localhost:8080)
+    - After all is done, you can run the dashboard in your browser in port 80:
+    [localhost](http://localhost)
 
 3. **Creating the services on your local machine:**
    - Alternatively, you can set up the services directly on your local machine without Docker.
@@ -214,9 +215,22 @@ To run the app, you have three options:
 <!-- USAGE EXAMPLES -->
 ## Usage
 
-Use this space to show useful examples of how a project can be used. Additional screenshots, code examples and demos work well in this space. You may also link to more resources.
+Feel free to download and play around with it. The app is currently in pre-release bug fixes and testing stages. On starting out and running the app you will need to register and create a new user for yourself
 
-_For more examples, please refer to the [Documentation](https://example.com)_
+![Registration][product-register-screenshot]
+
+The dashboard will be empty if there are no videos on the account
+![First Screen][product-first-screen]
+
+To upload a new video, click the "New" button. 
+![Upload Sscreen][product-upload-screen]
+
+Click the "Upload Video" to upload a new video file
+![Uploaded Video Screen][product-uploaded-video-screen]
+
+After the video was uploaded it will automatically start playing and under it you will have the opportunity to
+edit the video title and description
+![Edit video title][product-edit-screen]
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -224,13 +238,13 @@ _For more examples, please refer to the [Documentation](https://example.com)_
 
 <!-- ROADMAP -->
 ## Roadmap
+Future feature that are going to be added in the near future
+- [ ] Support for tags for each video
+- [ ] User preferences regarding transcode
+- [ ] Subtitles
+- [ ] Video key points
+- [ ] Video watermark
 
-- [ ] Feature 1
-- [ ] Feature 2
-- [ ] Feature 3
-    - [ ] Nested Feature
-
-See the [open issues](https://github.com/github_username/repo_name/issues) for a full list of proposed features (and known issues).
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -266,7 +280,7 @@ Distributed under the MIT License. See `LICENSE.txt` for more information.
 <!-- CONTACT -->
 ## Contact
 
-Your Name - [@twitter_handle](https://twitter.com/twitter_handle) - email@email_client.com
+Idan Baraness - idan.baraness@gmail.com
 
 Project Link: [https://github.com/github_username/repo_name](https://github.com/github_username/repo_name)
 
@@ -275,13 +289,7 @@ Project Link: [https://github.com/github_username/repo_name](https://github.com/
 
 
 <!-- ACKNOWLEDGMENTS -->
-## Acknowledgments
 
-* []()
-* []()
-* []()
-
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 
 
@@ -300,9 +308,22 @@ Project Link: [https://github.com/github_username/repo_name](https://github.com/
 [linkedin-shield]: https://img.shields.io/badge/-LinkedIn-black.svg?style=for-the-badge&logo=linkedin&colorB=555
 [linkedin-url]: https://linkedin.com/in/linkedin_username
 [product-screenshot]: images/screenshot.jpeg
+[product-register-screenshot]: images/sign-up.png
+[product-first-screen]: images/first_screen1.png
+[product-upload-screen]: images/upload_screen1.png
+[product-uploaded-video-screen]: images/uploaded_screen.png
+[product-edit-screen]: images/update_title.png
 [Next.js]: https://img.shields.io/badge/next.js-000000?style=for-the-badge&logo=nextdotjs&logoColor=white
 [Next-url]: https://nextjs.org/
 [React.js]: https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB
+[Nest.js]:https://img.shields.io/badge/-NestJs-ea2845?style=flat-square&logo=nestjs&logoColor=white
+[Nest-url]: https://nestjs.com/
+[Redis.io]:https://img.shields.io/badge/Redis-DC382D?style=for-the-badge&logo=redis&logoColor=white
+[Redis-url]:https://redis.io/
+[PostgresQL.org]:https://img.shields.io/badge/postgresql-4169e1?style=for-the-badge&logo=postgresql&logoColor=white
+[PostgresQL-url]:https://www.postgresql.org/
+[Docker.com]:https://img.shields.io/badge/docker-%230db7ed.svg?style=for-the-badge&logo=docker&logoColor=white
+[Docker-url]:https://www.docker.com/
 [React-url]: https://reactjs.org/
 [Vue.js]: https://img.shields.io/badge/Vue.js-35495E?style=for-the-badge&logo=vuedotjs&logoColor=4FC08D
 [Vue-url]: https://vuejs.org/

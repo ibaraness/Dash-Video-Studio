@@ -85,10 +85,8 @@ const ActualDashPlayer = () => {
         }
     }, [mpdSrc, player, videoElement, dispatch]);
 
-    // Toggle auto ABR and set auto bitrate or user select
-    if(mpdSrc){
-      useShakaABR(selectedTrack, player);  
-    } 
+    // Toggle auto ABR and set auto bitrate or user select 
+    useShakaABR(selectedTrack, player);  
 
     useEffect(() => {
         function updateAutoABR() {
