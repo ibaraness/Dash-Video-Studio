@@ -49,6 +49,7 @@ services:
       MINIO_SECRET_KEY: ${MINIO_SECRET_KEY}
       REDIS_HOST: ${REDIS_HOST}
       REDIS_PORT: ${REDIS_PORT}
+      SECRET_WORD: ${SECRET_WORD}
     depends_on:
       - db
 

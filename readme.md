@@ -64,6 +64,7 @@
     <li><a href="#contributing">Contributing</a></li>
     <li><a href="#license">License</a></li>
     <li><a href="#contact">Contact</a></li>
+    <li><a href="#Known-Issues">Known Issues</a></li>
   </ol>
 </details>
 
@@ -235,9 +236,10 @@ edit the video title and description
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 <!-- KNOWN ISSUES -->
-## Known Issues
+## Known-Issues
  - Currently Shaka-player is not a TypesScript module (will be fixed on next release)
  - Video player null exception bug with Shaka-player on first run (will be fixed on next release)
+ - User name sometimes not shown or display the wrong name on App bar
 
 <!-- ROADMAP -->
 ## Roadmap
