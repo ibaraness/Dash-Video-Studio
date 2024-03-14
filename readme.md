@@ -234,11 +234,15 @@ edit the video title and description
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
-
+<!-- KNOWN ISSUES -->
+## Known Issues
+ - Currently Shaka-player is not a TypesScript module (will be fixed on next release)
+ - Video player null exception bug with Shaka-player on first run (will be fixed on next release)
 
 <!-- ROADMAP -->
 ## Roadmap
 Future feature that are going to be added in the near future
+- [ ] Separate video player from the main app
 - [ ] Support for tags for each video
 - [ ] User preferences regarding transcode
 - [ ] Subtitles
