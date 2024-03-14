@@ -43,8 +43,8 @@ export const SignUp = () => {
             passwordConfirm: Yup.string().oneOf([Yup.ref('password')], 'Passwords must match'),
             email: Yup.string().email('Invalid email address').required('Required'),
         }),
-        onSubmit: ({username, password, email}) => {
-            signupAsync({username, password, email});
+        onSubmit: ({ username, password, email }) => {
+            signupAsync({ username, password, email });
         },
     });
 
@@ -60,10 +60,12 @@ export const SignUp = () => {
     const signupAsync = async (credentials: { username: string, password: string, email: string }) => {
         try {
             const res = await signupUser(credentials);
-            if(res.isError){
+            if (res.isError) {
                 setSignupError(res.errorMessage || "Unknown error occurred, please try again later!");
                 return;
             }
+            const userInfo = await getUserInfo();
+            dispatch(setUsername(userInfo.data?.username || ""));
             dispatch(setIsLoggedIn(true));
         } catch (err) {
             setSignupError("Unknown error occurred, please try again later!");
@@ -74,7 +76,7 @@ export const SignUp = () => {
         async function refresh() {
             try {
                 const res = await refreshUserToken();
-                if(res.isError){
+                if (res.isError) {
                     return;
                 }
                 const userInfo = await getUserInfo();

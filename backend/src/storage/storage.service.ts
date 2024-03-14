@@ -36,15 +36,16 @@ export class StorageService {
 
   async createBucket(bucketName: string) {
     try {
+      const lowerBucketName = bucketName.toLowerCase();
       this.logger.debug("attempting to create bucket", "StorageService");
-      const exist = await minioClient.bucketExists(bucketName);
+      const exist = await minioClient.bucketExists(lowerBucketName);
       if (exist) {
         return;
       }
-      await minioClient.makeBucket(bucketName, 'us-east-1');
+      await minioClient.makeBucket(lowerBucketName, 'us-east-1');
 
-      const policy = annonymousReadPolicy(bucketName);
-      await minioClient.setBucketPolicy(bucketName, policy);
+      const policy = annonymousReadPolicy(lowerBucketName);
+      await minioClient.setBucketPolicy(lowerBucketName, policy);
 
     } catch (e) {
       this.logger.error("Error creating bucket", e, "StorageService");
@@ -60,9 +61,10 @@ export class StorageService {
 
   async uploadFile(dashBucket: string, filename: string, filepath: string): Promise<UploadFileResponse> {
     try {
-      await this.createBucket(dashBucket);
-      const res = await minioClient.fPutObject(dashBucket, filename, filepath);
-      const url = `${this.getEndPoint()}/${dashBucket}/${filename}`;
+      const lowerBucketName = dashBucket.toLowerCase();
+      await this.createBucket(lowerBucketName);
+      const res = await minioClient.fPutObject(lowerBucketName, filename, filepath);
+      const url = `${this.getEndPoint()}/${lowerBucketName}/${filename}`;
       this.logger.debug(`uploadFile() URL:${url}`, StorageService.name);
       return {
         ...res,
@@ -74,9 +76,10 @@ export class StorageService {
   }
 
   async deleteAllListOnBucket(bucket: string) {
+    const lowerBucketName = bucket.toLowerCase();
     const objectsList = [];
     // List all object paths in bucket my-bucketname.
-    const objectsStream = minioClient.listObjects(bucket, '', true)
+    const objectsStream = minioClient.listObjects(lowerBucketName, '', true)
 
     objectsStream.on('data', function (obj) {
       objectsList.push(obj.name)
@@ -86,7 +89,7 @@ export class StorageService {
     });
 
     objectsStream.on('end', () => {
-      minioClient.removeObjects(bucket, objectsList, (e) => {
+      minioClient.removeObjects(lowerBucketName, objectsList, (e) => {
         if (e) {
           this.logger.error("Unable to remove Objects", JSON.stringify(e), StorageService.name);
           throw new Error("Unable to remove Objects");
@@ -98,10 +101,11 @@ export class StorageService {
   }
 
   async deleteFiles(bucket: string, folderName: string) {
+    const lowerBucketName = bucket.toLowerCase();
     const objectsList = []
 
     // List all object paths in bucket my-bucketname.
-    const objectsStream = minioClient.listObjects(bucket, folderName, true)
+    const objectsStream = minioClient.listObjects(lowerBucketName, folderName, true)
 
     objectsStream.on('data', function (obj) {
       objectsList.push(obj.name)
@@ -112,7 +116,7 @@ export class StorageService {
     })
 
     objectsStream.on('end', () => {
-      minioClient.removeObjects(bucket, objectsList, (e) => {
+      minioClient.removeObjects(lowerBucketName, objectsList, (e) => {
         if (e) {
           this.logger.error("Unable to remove Objects", JSON.stringify(e), StorageService.name);
           throw new Error("Unable to remove Objects");
@@ -124,7 +128,7 @@ export class StorageService {
   }
 
   async uploadFolder(dashBucket: string, folderPath: string, outputFolderName?: string): Promise<{ url: string }> {
-
+    const lowerBucketName = dashBucket.toLowerCase();
     if (!fs.existsSync(folderPath)) {
       throw new Error("Folder does not exist in that path");
     }
@@ -132,14 +136,14 @@ export class StorageService {
     const uniquePath = outputFolderName ? outputFolderName : uuidv4();
 
     if (files) {
-      await this.createBucket(dashBucket);
+      await this.createBucket(lowerBucketName);
       for (let i = 0; i < files.length; i++) {
         const enrichedPath = path.join(uniquePath, files[i]);
         const filePath = path.join(folderPath, files[i]);
-        const storage = await this.uploadFile(dashBucket, enrichedPath, filePath);
+        const storage = await this.uploadFile(lowerBucketName, enrichedPath, filePath);
       }
     }
-    const url = `${this.getEndPoint()}/${dashBucket}/${uniquePath}`;
+    const url = `${this.getEndPoint()}/${lowerBucketName}/${uniquePath}`;
     this.logger.debug(`uploadFolder() URL:${url}`, StorageService.name);
     return {
       url
@@ -147,10 +151,11 @@ export class StorageService {
   }
 
   async uploadFileWithFolder(dashBucket: string, folderName: string, filename: string, filepath: string): Promise<UploadFileResponse> {
-    await this.createBucket(dashBucket);
+    const lowerBucketName = dashBucket.toLowerCase();
+    await this.createBucket(lowerBucketName);
     const filenameWithFolder = `${folderName}/${filename}`;
-    const res = await this.uploadFile(dashBucket, filenameWithFolder, filepath);
-    const url = `${this.getEndPoint()}/${dashBucket}/${folderName}/${filename}`;
+    const res = await this.uploadFile(lowerBucketName, filenameWithFolder, filepath);
+    const url = `${this.getEndPoint()}/${lowerBucketName}/${folderName}/${filename}`;
     return {
       ...res,
       url
@@ -158,9 +163,10 @@ export class StorageService {
   }
 
   async uploadWithUniquePath(dashBucket: string, filename: string, filepath: string): Promise<UploadedObjectInfo> {
-    await this.createBucket(dashBucket);
+    const lowerBucketName = dashBucket.toLowerCase();
+    await this.createBucket(lowerBucketName);
     const uniquePath = this.getUniqueFilePath(filename);
-    return this.uploadFile(dashBucket, uniquePath, filepath)
+    return this.uploadFile(lowerBucketName, uniquePath, filepath)
   }
 
   getUniqueFilePath(filename: string): string {
