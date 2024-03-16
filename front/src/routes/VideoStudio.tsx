@@ -11,7 +11,7 @@ import LinearProgressWithLabel from "../components/LinearProgressWithLabel"
 import InputFileUpload from "../components/UploadButton"
 import { VideoList } from "../components/videoList/VideoList"
 import { useAppDispatch, useAppSelector } from "../app/hooks"
-import { useEffect, useRef } from "react"
+import { Suspense, lazy, useEffect, useRef } from "react"
 import { socket } from "../sockets/socket"
 import { selectDashURL, setVideo, setVideoMode } from "../features/video/videoSlice"
 import VideoDetails from "../components/videoDetails/VideoDetails"
@@ -19,10 +19,14 @@ import { VideoResponse } from "../features/videoList/videoListSlice.model"
 import { selectIsMobile, selectTopMenuHeight, selectTopOffset, setTopOffset } from "../features/ui/uiSlice"
 import { addAllVideos, fetchVideos } from "../features/videoList/videoListsSlice"
 import { setMessage, setOpen, setSeverity } from "../features/notification/notificationSlice"
-import { DashPlayer } from 'dash-studio-player'
+// import { DashPlayer } from 'dash-studio-player'
 
 import eventEmitter from "../app/utils/eventEmitter"
+import { CircularProgress } from "@mui/material"
 
+const LazyVideoPlayer = lazy(() => import('../components/LazyVideoPlayer'))
+
+// import LazyVideoPlayer from '../components/LazyVideoPlayer'
 
 interface TranscodeResponse {
     status: string;
@@ -45,10 +49,10 @@ export const VideoStudio = () => {
 
     useEffect(() => {
         socket.connect();
-        return () =>{
+        return () => {
             socket.disconnect();
         }
-    },[]);
+    }, []);
 
     useEffect(() => {
         function onConnect() {
@@ -61,7 +65,7 @@ export const VideoStudio = () => {
 
         socket.on('connect', onConnect);
         socket.on('disconnect', onDisconnect);
-        return ()=>{
+        return () => {
             socket.off('connect', onConnect);
             socket.off('disconnect', onDisconnect);
         }
@@ -78,10 +82,10 @@ export const VideoStudio = () => {
                     const res = await dispatch(fetchVideos()).unwrap();
                     dispatch(addAllVideos(res || []));
                 } catch (e) {
-                    if(typeof e === "object"){
-                       const errorWithMessage = {message:"Something went wrong!", ...e};
-                       failureNotification(errorWithMessage.message);
-                       return;
+                    if (typeof e === "object") {
+                        const errorWithMessage = { message: "Something went wrong!", ...e };
+                        failureNotification(errorWithMessage.message);
+                        return;
                     }
                     failureNotification();
                     console.error(e);
@@ -106,7 +110,7 @@ export const VideoStudio = () => {
             socket.off('packageTranscode', OnPackageTrascode);
             socket.off('videoUpdated', onVideoUpdated);
         };
-    },[dispatch]);
+    }, [dispatch]);
 
     const handleClearForm = () => {
         dispatch(setPercent(0));
@@ -129,7 +133,7 @@ export const VideoStudio = () => {
     }, [playerContainer, dispatch, topMenuOffset])
 
     return (
-        <Grid sx={{pt:`${isMobile && (topOffset + topMenuOffset) + 'px' || 0}`}} container>
+        <Grid sx={{ pt: `${isMobile && (topOffset + topMenuOffset) + 'px' || 0}` }} container>
             <Grid item md={8} xs={12}>
                 <Box ref={playerContainer} sx={{
                     mb: 4,
@@ -150,15 +154,24 @@ export const VideoStudio = () => {
                             }}>
                                 <Stack >
                                     {
-                                        mpdSrc 
-                                        ? 
-                                        <DashPlayer mpdUrl={mpdSrc}></DashPlayer> 
-                                        
-                                        : <Box sx={{
-                                            backgroundColor:"black",
-                                            aspectRatio:"16 /9",
-                                            width: "100%" 
-                                        }}></Box>
+                                        mpdSrc
+                                            ? <Suspense fallback={<Box sx={{
+                                                backgroundColor: "black",
+                                                aspectRatio: "16 /9",
+                                                width: "100%",
+                                                display: "flex",
+                                                alignItems: "center",
+                                                justifyContent: "center"
+                                            }}>
+                                                <CircularProgress sx={{ color: "white" }} />
+                                            </Box>}>
+                                                <LazyVideoPlayer mpdUrl={mpdSrc} />
+                                            </Suspense>
+                                            : <Box sx={{
+                                                backgroundColor: "black",
+                                                aspectRatio: "16 /9",
+                                                width: "100%"
+                                            }}></Box>
                                     }
                                     <VideoDetails></VideoDetails>
                                 </Stack>
