@@ -8,7 +8,7 @@ import Button from "@mui/material/Button";
 
 import { useAppDispatch, useAppSelector } from "../../app/hooks";
 import { selectConfirmAction, selectConfirmCallId, selectConfirmMessage, selectConfirmTitle, selectIsConfirmOpen, setConfirmCallId, setConfirmOpen } from "../../features/confirm/confirmSlice";
-import eventEmitter from "../DashPlayer/utils/eventEmitter";
+import eventEmitter from "../../app/utils/eventEmitter";
 
 export interface ConfirmResponse {
     id: number | string,

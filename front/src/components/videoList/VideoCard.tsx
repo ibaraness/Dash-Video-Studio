@@ -8,8 +8,8 @@ import Typography from "@mui/material/Typography";
 import { useMemo } from "react";
 import { useAppDispatch } from "../../app/hooks";
 import { clearVideoData, setVideo } from "../../features/video/videoSlice";
-import { parseSecondsToTimeString } from "../DashPlayer/utils/general-utils";
 import { VideoResponse } from "../../features/videoList/videoListSlice.model";
+import { parseSecondsToTimeString } from "../../app/utils/general-utils";
 
 export const VideoCard = ({ video }: { video: VideoResponse }) => {
 

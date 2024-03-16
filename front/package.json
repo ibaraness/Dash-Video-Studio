@@ -17,6 +17,7 @@
     "@mui/material": "^5.15.6",
     "@reduxjs/toolkit": "^2.0.1",
     "axios": "^1.6.7",
+    "dash-studio-player": "^1.0.0",
     "dashjs": "^4.7.3",
     "fbemitter": "^3.0.0",
     "formik": "^2.4.5",
@@ -47,6 +48,7 @@
     "eslint-plugin-react-refresh": "^0.4.5",
     "typescript": "^5.2.2",
     "video.js": "^8.10.0",
-    "vite": "^5.0.8"
+    "vite": "^5.0.8",
+    "vite-plugin-dynamic-import": "^1.5.0"
   }
 }

@@ -16,7 +16,6 @@ import NotificationSnack from './components/notifications/NotificationSnack';
 import { getBreakingpoint } from './services/helpers';
 import { useAppDispatch, useAppSelector } from './app/hooks';
 import { setActiveBreakpoint, setIsMobile, setTopMenuHeight } from './features/ui/uiSlice';
-import eventEmitter from './components/DashPlayer/utils/eventEmitter';
 import ConfirmDialog from './components/confirm/ConfirmDialog';
 import { Outlet } from "react-router-dom";
 import AccountCircle from '@mui/icons-material/AccountCircle';
@@ -24,6 +23,7 @@ import { selectIsLoggedIn, selectUsername, setIsLoggedIn } from './features/logi
 import { logoutUser } from './services/restApi/restAPI';
 import { setMute, setVolume } from './features/videoPlayer/videoPlayerSlice';
 import { clearVideoData } from './features/video/videoSlice';
+import eventEmitter from './app/utils/eventEmitter';
 
 function App() {
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);

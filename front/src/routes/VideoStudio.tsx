@@ -11,16 +11,18 @@ import LinearProgressWithLabel from "../components/LinearProgressWithLabel"
 import InputFileUpload from "../components/UploadButton"
 import { VideoList } from "../components/videoList/VideoList"
 import { useAppDispatch, useAppSelector } from "../app/hooks"
-import DashPlayer from "../components/DashPlayer/DashPlayer"
 import { useEffect, useRef } from "react"
 import { socket } from "../sockets/socket"
-import { setVideo, setVideoMode } from "../features/video/videoSlice"
+import { selectDashURL, setVideo, setVideoMode } from "../features/video/videoSlice"
 import VideoDetails from "../components/videoDetails/VideoDetails"
 import { VideoResponse } from "../features/videoList/videoListSlice.model"
-import eventEmitter from "../components/DashPlayer/utils/eventEmitter"
 import { selectIsMobile, selectTopMenuHeight, selectTopOffset, setTopOffset } from "../features/ui/uiSlice"
 import { addAllVideos, fetchVideos } from "../features/videoList/videoListsSlice"
 import { setMessage, setOpen, setSeverity } from "../features/notification/notificationSlice"
+import { DashPlayer } from 'dash-studio-player'
+
+import eventEmitter from "../app/utils/eventEmitter"
+
 
 interface TranscodeResponse {
     status: string;
@@ -38,6 +40,8 @@ export const VideoStudio = () => {
     const dispatch = useAppDispatch();
 
     const topMenuOffset = useAppSelector(selectTopMenuHeight);
+
+    const mpdSrc = useAppSelector(selectDashURL);
 
     useEffect(() => {
         socket.connect();
@@ -145,7 +149,17 @@ export const VideoStudio = () => {
 
                             }}>
                                 <Stack >
-                                    <DashPlayer></DashPlayer>
+                                    {
+                                        mpdSrc 
+                                        ? 
+                                        <DashPlayer mpdUrl={mpdSrc}></DashPlayer> 
+                                        
+                                        : <Box sx={{
+                                            backgroundColor:"black",
+                                            aspectRatio:"16 /9",
+                                            width: "100%" 
+                                        }}></Box>
+                                    }
                                     <VideoDetails></VideoDetails>
                                 </Stack>
                             </Paper>

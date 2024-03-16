@@ -13,11 +13,11 @@ import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { setConfirmAction, setConfirmCallId, setConfirmMessage, setConfirmOpen, setConfirmTitle } from "../../features/confirm/confirmSlice";
 import { useEffect } from "react";
-import eventEmitter from "../DashPlayer/utils/eventEmitter";
 import { ConfirmResponse } from "../confirm/ConfirmDialog";
 import { setMessage, setOpen, setSeverity } from "../../features/notification/notificationSlice";
 import { deleteAVideo } from "../../services/restApi/restAPI";
 import { addAllVideos, fetchVideos } from "../../features/videoList/videoListsSlice";
+import eventEmitter from "../../app/utils/eventEmitter";
 
 const VideoDetails = () => {
     const videoName = useAppSelector(selectVideoName);
